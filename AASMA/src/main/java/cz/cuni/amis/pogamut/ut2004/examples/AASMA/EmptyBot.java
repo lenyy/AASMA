@@ -1,14 +1,13 @@
 package cz.cuni.amis.pogamut.ut2004.examples.AASMA;
 
-import java.util.logging.Level;
+import java.io.File;
 
 import cz.cuni.amis.introspection.java.JProp;
-import cz.cuni.amis.pogamut.base.agent.navigation.IPathFuture;
-import cz.cuni.amis.pogamut.base.agent.navigation.impl.PrecomputedPathFuture;
+import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
+import cz.cuni.amis.pogamut.base.communication.connection.impl.socket.SocketConnectionAddress;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
-import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
-import cz.cuni.amis.pogamut.base3d.worldview.object.Rotation;
+import cz.cuni.amis.pogamut.ut2004.agent.params.UT2004AgentParameters;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
@@ -17,12 +16,12 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotDama
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotKilled;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ConfigChange;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GameInfo;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GlobalChat;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.InitedMessage;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.MapList;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Self;
+import cz.cuni.amis.pogamut.ut2004.factory.guice.remoteagent.UT2004ServerFactory;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
-import cz.cuni.amis.utils.collections.MyCollections;
 import cz.cuni.amis.utils.exception.PogamutException;
 
 /**
@@ -86,7 +85,7 @@ public class EmptyBot extends UT2004BotModuleController {
     @Override
     public void prepareBot(UT2004Bot bot) {
         // By uncommenting following line, you can make the bot to do the file logging of all its components
-        //bot.getLogger().addDefaultFileHandler(new File("EmptyBot.log"));
+        bot.getLogger().addDefaultFileHandler(new File("EmptyBot.log"));
     }
     
     /**
@@ -245,6 +244,8 @@ public class EmptyBot extends UT2004BotModuleController {
      * @param args
      */
     public static void main(String args[]) throws PogamutException {
+    
+    	
         new UT2004BotRunner(     // class that wrapps logic for bots executions, suitable to run single bot in single JVM
                 EmptyBot.class,  // which UT2004BotController it should instantiate
                 "EmptyBot"       // what name the runner should be using
