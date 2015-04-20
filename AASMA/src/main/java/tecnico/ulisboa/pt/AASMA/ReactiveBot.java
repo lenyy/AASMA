@@ -1,46 +1,47 @@
 package tecnico.ulisboa.pt.AASMA;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 
 import cz.cuni.amis.introspection.java.JProp;
-import cz.cuni.amis.pogamut.base.agent.navigation.IPathExecutorState;
-import cz.cuni.amis.pogamut.base.agent.params.IAgentParameters;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
-import cz.cuni.amis.pogamut.base.utils.Pogamut;
+import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.ObjectClassEventListener;
+import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.ObjectClassListener;
+import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.ObjectEventListener;
+import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.ObjectListener;
+import cz.cuni.amis.pogamut.base.communication.worldview.object.IWorldObjectEvent;
+import cz.cuni.amis.pogamut.base.communication.worldview.object.event.WorldObjectUpdatedEvent;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
-import cz.cuni.amis.pogamut.base.utils.math.DistanceUtils;
-import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
+import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
+import cz.cuni.amis.pogamut.base3d.worldview.object.event.WorldObjectAppearedEvent;
+import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.agent.module.utils.TabooSet;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.NavigationState;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.UT2004PathAutoFixer;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.stuckdetector.UT2004DistanceStuckDetector;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.stuckdetector.UT2004PositionStuckDetector;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.stuckdetector.UT2004TimeStuckDetector;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.bot.params.UT2004BotParameters;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Move;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Rotate;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Stop;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.StopShooting;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotDamaged;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotKilled;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Bumped;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GameInfo;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerDamaged;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerKilled;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
+import cz.cuni.amis.pogamut.ut2004.utils.UnrealUtils;
 import cz.cuni.amis.utils.collections.MyCollections;
 import cz.cuni.amis.utils.exception.PogamutException;
 import cz.cuni.amis.utils.flag.FlagListener;
+
 
 /**
  * Example of Simple Pogamut bot, that randomly walks around the map searching
@@ -83,12 +84,80 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
      */
     @JProp
     public int frags = 0;
+    
     /**
-     * how many times the hunter died
-     */
-    @JProp
-    public int deaths = 0;
+	 * how many times the hunter died
+	 */
+	@JProp
+	public int deaths = 0;
 
+	@EventListener(eventClass = Bumped.class)
+    protected void bumped(Bumped event) {
+        // schema of the vector computations
+        //
+        //  e<->a<------>t
+        //  |   |   v    |
+        //  |   |        target - bot will be heading there
+        //  |   getLocation()
+        //  event.getLocation()
+
+        Location v = event.getLocation().sub(bot.getLocation()).scale(5);
+        Location target = bot.getLocation().sub(v);
+
+        // make the bot to go to the computed location while facing the bump source
+        move.strafeTo(target, event.getLocation());
+    }
+    
+    @ObjectClassEventListener(eventClass = WorldObjectAppearedEvent.class, objectClass = Player.class)
+    protected void playerAppeared(WorldObjectAppearedEvent<Player> event) {
+        // greet player when he appears
+        body.getCommunication().sendGlobalTextMessage("Hello " + event.getObject().getName() + "!");
+    }
+    
+    
+     protected boolean wasCloseBefore = false;
+     
+     
+     protected void playerUpdated(WorldObjectUpdatedEvent<Player> event) {
+        // Check whether the player is closer than 5 bot diameters.
+        // Notice the use of the UnrealUtils class.
+        // It contains many auxiliary constants and methods.
+        Player player = event.getObject();
+        // First player objects are received in HandShake - at that time we don't have Self message yet or players location!!
+        if (player.getLocation() == null || info.getLocation() == null) {
+            return;
+        }
+        if (player.getLocation().getDistance(info.getLocation()) < (UnrealUtils.CHARACTER_COLLISION_RADIUS * 10)) {
+            // If the player wasn't close enough the last time this listener was called,
+            // then ask him what does he want.
+            if (!wasCloseBefore) {
+                body.getCommunication().sendGlobalTextMessage("What do you want " + player.getName() + "?");
+                // Set proximity flag to true.
+                wasCloseBefore = true;
+            }
+        } else {
+            // Otherwise set the proximity flag to false.
+            wasCloseBefore = false;
+        }
+    }
+    
+     //FUNÇÃO NOTIFY??? (BOT DAMAGED)
+     
+    @ObjectListener(idClass = UnrealId.class, objectId = "GameInfoId")
+    public void gameInfo1(IWorldObjectEvent<GameInfo> gameInfoEvent) {
+        log.warning("GAME INFO EVENT =1=: " + gameInfoEvent);
+    }
+    
+    @ObjectEventListener(idClass = UnrealId.class, objectId = "GameInfoId", eventClass = WorldObjectUpdatedEvent.class)
+    public void gameInfo2(WorldObjectUpdatedEvent<GameInfo> gameInfoEvent) {
+        log.warning("GAME INFO EVENT =2=: " + gameInfoEvent);
+    }
+     
+    @ObjectClassListener(objectClass = Player.class)
+    public void playerEvent(IWorldObjectEvent<Player> playerEvent) {
+        log.warning("PLAYER EVENT: " + playerEvent);        
+    }
+    
     /**
      * {@link PlayerKilled} listener that provides "frag" counting + is switches
      * the state of the hunter.
@@ -107,6 +176,7 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
             enemy = null;
         }
     }
+    
     /**
      * Used internally to maintain the information about the bot we're currently
      * hunting, i.e., should be firing at.
@@ -131,6 +201,8 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
      */
     @Override
     public void prepareBot(UT2004Bot bot) {
+    	bot.getLogger().addDefaultFileHandler(new File("ReactiveBot.log"));
+    	
         tabooItems = new TabooSet<Item>(bot);
 
         autoFixer = new UT2004PathAutoFixer(bot, navigation.getPathExecutor(), fwMap, aStar, navBuilder); // auto-removes wrong navigation links between navpoints
@@ -166,6 +238,18 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
         weaponPrefs.addGeneralPref(UT2004ItemType.ASSAULT_RIFLE, true);        
         weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, true);
     }
+    
+	/**
+	 * This method returns the parameters of the bot, to be used. It is using {@link UT2004Bot#getParams()} and casts them
+	 * to {@link CustomBotParameters} that is, this bot can't be used with different parameters (it will screw up).
+	 * @return
+	 */
+	public CustomBotParameters getParams() {
+		// notice the cast to CustomBotParameters
+		// this method will fail if you do not start the bot with CustomBotParameters (which compiles, but fails during runtime)
+		return (CustomBotParameters)bot.getParams();
+	}
+    
 
     /**
      * Here we can modify initializing command for our bot.
@@ -176,7 +260,8 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
     public Initialize getInitializeCommand() {
         // just set the name of the bot and his skill level, 1 is the lowest, 7 is the highest
     	// skill level affects how well will the bot aim
-        return new Initialize().setName("Hunter-" + (++instanceCount)).setDesiredSkill(5);
+        return new Initialize().setName(getParams().getName())
+        					.setDesiredSkill(getParams().getSkillLevel());
     }
 
     /**
@@ -255,7 +340,7 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
      * </ol>
      */
     protected void stateEngage() {
-        //log.info("Decision is: ENGAGE");
+        log.info("Decision is: ENGAGE");
         //config.setName("Hunter [ENGAGE]");
 
         boolean shooting = false;
@@ -307,7 +392,7 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
     // STATE HIT //
     ///////////////
     protected void stateHit() {
-        //log.info("Decision is: HIT");
+        log.info("Decision is: HIT");
         bot.getBotName().setInfo("HIT");
         if (navigation.isNavigating()) {
         	navigation.stopNavigation();
@@ -326,7 +411,7 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
      * to null - bot would have seen him before or lost him once for all </ol>
      */
     protected void statePursue() {
-        //log.info("Decision is: PURSUE");
+        log.info("Decision is: PURSUE");
         ++pursueCount;
         if (pursueCount > 30) {
             reset();
@@ -345,7 +430,7 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
     // STATE MEDKIT //
     //////////////////
     protected void stateMedKit() {
-        //log.info("Decision is: MEDKIT");
+        log.info("Decision is: MEDKIT");
         Item item = items.getPathNearestSpawnedItem(ItemType.Category.HEALTH);
         if (item == null) {
         	log.warning("NO HEALTH ITEM TO RUN TO => ITEMS");
@@ -363,7 +448,7 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
     protected List<Item> itemsToRunAround = null;
 
     protected void stateRunAroundItems() {
-        //log.info("Decision is: ITEMS");
+        log.info("Decision is: ITEMS");
         //config.setName("Hunter [ITEMS]");
         if (navigation.isNavigatingToItem()) return;
         
@@ -412,7 +497,15 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
         // note that this is the most easy way to get a bunch of (the same) bots running at the same time
     	// Bots divided into 2 teams
     	new UT2004BotRunner<UT2004Bot,UT2004BotParameters>(ReactiveBot.class, "Reactive").setMain(true).setLogLevel(Level.INFO).startAgents
-    	(new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0)
-    			,new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1));
+    	(		new CustomBotParameters().setTeam(0).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(0).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(0).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(0).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(0).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(1).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(1).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(1).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(1).setSkillLevel(5).setName("Reactive - " + (++instanceCount)),
+    			new CustomBotParameters().setTeam(1).setSkillLevel(5).setName("Reactive - " + (++instanceCount)));
     }
 }
