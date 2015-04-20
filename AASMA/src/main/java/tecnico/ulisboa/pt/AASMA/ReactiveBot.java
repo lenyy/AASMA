@@ -1,4 +1,4 @@
-package cz.cuni.amis.pogamut.ut2004.examples.AASMA;
+package tecnico.ulisboa.pt.AASMA;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -50,7 +50,7 @@ import cz.cuni.amis.utils.flag.FlagListener;
  * @author Jimmy
  */
 @AgentScoped
-public class HunterBot extends UT2004BotModuleController<UT2004Bot> {
+public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
 
     /**
      * boolean switch to activate engage behavior
@@ -411,7 +411,7 @@ public class HunterBot extends UT2004BotModuleController<UT2004Bot> {
         // starts 10 Hunters at once
         // note that this is the most easy way to get a bunch of (the same) bots running at the same time
     	// Bots divided into 2 teams
-    	new UT2004BotRunner<UT2004Bot,UT2004BotParameters>(HunterBot.class, "Hunter").setMain(true).setLogLevel(Level.INFO).startAgents
+    	new UT2004BotRunner<UT2004Bot,UT2004BotParameters>(ReactiveBot.class, "Reactive").setMain(true).setLogLevel(Level.INFO).startAgents
     	(new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0)
     			,new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1));
     }

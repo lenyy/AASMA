@@ -1,4 +1,4 @@
-package cz.cuni.amis.pogamut.ut2004.examples.custom_control_server_archtype;
+package tecnico.ulisboa.pt.AASMA.Server;
 
 import java.util.Collection;
 

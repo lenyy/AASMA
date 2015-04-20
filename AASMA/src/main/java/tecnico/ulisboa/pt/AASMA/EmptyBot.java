@@ -1,4 +1,4 @@
-package cz.cuni.amis.pogamut.ut2004.examples.AASMA;
+package tecnico.ulisboa.pt.AASMA;
 
 import java.io.File;
 

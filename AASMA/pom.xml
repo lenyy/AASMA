@@ -8,16 +8,15 @@
 		<version>3.7.0</version>
 	</parent>
 
-	<groupId>cz.cuni.amis.pogamut.ut2004.examples</groupId>
+	<groupId>tecnico.ulisboa.pt.AASMA</groupId>
 	<artifactId>AASMA</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>00-empty-bot</name>
-	<url>http://pogamut.cuni.cz/pogamut_files/latest/doc/tutorials/EmptyBotTutorial.html</url>
+	<name>Reactive-Bot</name>
 
 	<properties>
-		<bot.main.class>cz.cuni.amis.pogamut.ut2004.examples.AASMA.HunterBot</bot.main.class>
+		<bot.main.class>tecnico.ulisboa.pt.AASMA.ReactiveBot</bot.main.class>
 	</properties>
 
 	<repositories>
