@@ -42,7 +42,6 @@ import cz.cuni.amis.utils.collections.MyCollections;
 import cz.cuni.amis.utils.exception.PogamutException;
 import cz.cuni.amis.utils.flag.FlagListener;
 
-
 /**
  * Example of Simple Pogamut bot, that randomly walks around the map searching
  * for preys shooting at everything that is in its way.
@@ -86,12 +85,12 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
     public int frags = 0;
     
     /**
-	 * how many times the hunter died
-	 */
-	@JProp
-	public int deaths = 0;
+     * how many times the hunter died
+     */
+    @JProp
+    public int deaths = 0;
 
-	@EventListener(eventClass = Bumped.class)
+     @EventListener(eventClass = Bumped.class)
     protected void bumped(Bumped event) {
         // schema of the vector computations
         //
@@ -157,6 +156,7 @@ public class ReactiveBot extends UT2004BotModuleController<UT2004Bot> {
     public void playerEvent(IWorldObjectEvent<Player> playerEvent) {
         log.warning("PLAYER EVENT: " + playerEvent);        
     }
+
     
     /**
      * {@link PlayerKilled} listener that provides "frag" counting + is switches
