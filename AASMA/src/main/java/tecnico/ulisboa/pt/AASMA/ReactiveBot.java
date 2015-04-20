@@ -4,16 +4,21 @@ import javax.vecmath.Vector3d;
 
 import cz.cuni.amis.introspection.java.JProp;
 import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
+import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
+import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.Players;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.LevelGeometryModule;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Configuration;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.RemoveRay;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.StopShooting;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.AutoTraceRay;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ConfigChange;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GameInfo;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.InitedMessage;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerKilled;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.pogamut.ut2004.utils.UnrealUtils;
 import cz.cuni.amis.utils.exception.PogamutException;
@@ -112,6 +117,40 @@ public class ReactiveBot extends UT2004BotModuleController {
      */
     @JProp
     private int bigTurn = 90;
+    
+    /**
+     * how many bot the hunter killed other bots (i.e., bot has fragged them /
+     * got point for killing somebody)
+     */
+    @JProp
+    public int frags = 0;
+    
+    /**
+     * Used internally to maintain the information about the bot we're currently
+     * hunting, i.e., should be firing at.
+     */
+    protected Player enemy = null;
+    
+    /**
+     * {@link PlayerKilled} listener that provides "frag" counting + is switches
+     * the state of the hunter.
+     *
+     * @param event
+     */
+    @EventListener(eventClass = PlayerKilled.class)
+    public void playerKilled(PlayerKilled event) {
+        if (event.getKiller().equals(info.getId())) {
+            ++frags;
+            log.info("I'm the KILLER ");
+        }
+        if (enemy == null) {
+            return;
+        }
+        if (enemy.getId().equals(event.getId())) {
+            enemy = null;
+        }
+    }
+    
 
     /**
      * The bot is initialized in the environment - a physical representation of
@@ -210,6 +249,46 @@ public class ReactiveBot extends UT2004BotModuleController {
     public void logic() throws PogamutException {
         // mark that another logic iteration has began
         log.info("--- Logic iteration ---");
+        
+        if (players.canSeeEnemies()){
+        	this.stateEngage();
+        	return;
+        }
+        
+        this.move();
+    }
+    
+    
+    protected void stateEngage(){
+        log.info("Decision is: ENGAGE");
+        
+     // 1) pick new enemy if the old one has been lost
+        if (enemy == null || !enemy.isVisible()) {
+            // pick new enemy
+            enemy = players.getNearestVisiblePlayer(players.getVisibleEnemies().values());
+            if (enemy == null) {
+                log.info("Can't see any enemies... ???");
+                return;
+            }
+        }
+
+        // 2) stop shooting if enemy is not visible
+        if (!enemy.isVisible()) {
+	        if (info.isShooting() || info.isSecondaryShooting()) {
+                // stop shooting
+                getAct().act(new StopShooting());
+            }
+        } else {
+        	// 2) or shoot on enemy if it is visible
+	        if (shoot.shoot(weaponPrefs, enemy) != null) 
+	            log.info("Shooting at enemy!!!");
+	        
+        }
+
+    }
+    
+    
+    protected void move() {
 
         // if the rays are not initialized yet, do nothing and wait for their initialization 
         if (!raycasting.getAllRaysInitialized().getFlag()) {
@@ -284,6 +363,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 
         // HOMEWORK FOR YOU GUYS:
         // Try to utilize LEFT90 and RIGHT90 sensors and implement wall-following behavior!
+
     }
 
     /**
