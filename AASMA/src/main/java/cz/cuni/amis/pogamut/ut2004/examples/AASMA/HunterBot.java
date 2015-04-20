@@ -408,9 +408,11 @@ public class HunterBot extends UT2004BotModuleController<UT2004Bot> {
 
     ///////////////////////////////////
     public static void main(String args[]) throws PogamutException {
-        // starts 3 Hunters at once
-        // note that this is the most easy way to get a bunch of (the same) bots running at the same time        
+        // starts 10 Hunters at once
+        // note that this is the most easy way to get a bunch of (the same) bots running at the same time
+    	// Bots divided into 2 teams
     	new UT2004BotRunner<UT2004Bot,UT2004BotParameters>(HunterBot.class, "Hunter").setMain(true).setLogLevel(Level.INFO).startAgents
-    	(new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1));
+    	(new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0),new UT2004BotParameters().setTeam(0)
+    			,new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1),new UT2004BotParameters().setTeam(1));
     }
 }
