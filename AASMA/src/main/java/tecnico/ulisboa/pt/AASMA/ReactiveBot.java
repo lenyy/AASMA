@@ -344,10 +344,10 @@ public class ReactiveBot extends UT2004BotModuleController {
 
 
 	protected void move() {
-            
-                Random rnd = new Random();
-                
-                
+
+		Random rnd = new Random();
+
+
 		// if the rays are not initialized yet, do nothing and wait for their initialization 
 		if (!raycasting.getAllRaysInitialized().getFlag()) {
 			log.info("Aqui");
@@ -390,89 +390,90 @@ public class ReactiveBot extends UT2004BotModuleController {
 						if(sensorLeft90) {
 							// LEFT45, LEFT90, RIGHT45, RIGHT90 and FRONT are signaling
 							move.jump();
-							} 
+						} 
 						else {
 							// LEFT45, FRONT45 are signaling
 							move.turnHorizontal(-bigTurn);
-							}
-					}else
-                                            if(sensorLeft90){
-						move.turnHorizontal(bigTurn);		
 						}
-                                            else {
-                                                if (rnd.nextInt(1)==1) 
-                                                        move.turnHorizontal(bigTurn);
-                                                else {
-                                                    move.turnHorizontal(-bigTurn);
-                                                }
-                                            }
-					}
+					}else
+						if(sensorLeft90){
+							move.turnHorizontal(bigTurn);		
+						}
+						else {
+							if (rnd.nextInt(1)==1) 
+								move.turnHorizontal(bigTurn);
+							else {
+								move.turnHorizontal(-bigTurn);
+							}
+						}
+				}
 
-				} else {
-					if (sensorRight45) {
-                                            
-                                            if (sensorRight90) {
-                                                if (sensorLeft90) {
-                                            
-						// RIGHT45, FRONT are signaling
-						move.turnHorizontal(-smallTurn);
-					} else {
-						// FRONT is signaling
-						move.turnHorizontal(smallTurn);
-					}
-                                        
-                                     
-				}
-		} else {
-				if (sensorLeft45) {
-					if (sensorRight45) {
-						// LEFT45, RIGHT45 are signaling
-						goForward();
-					} else {
-						// LEFT45 is signaling
-						move.turnHorizontal(smallTurn);
+			} else {
+				if (sensorRight45) {
+
+					if (sensorRight90) {
+						if (sensorLeft90) {
+
+							// RIGHT45, FRONT are signaling
+							move.turnHorizontal(-smallTurn);
+						} else {
+							// FRONT is signaling
+							move.turnHorizontal(smallTurn);
+						}
+
+
 					}
 				} else {
-					if (sensorRight45) {
-						// RIGHT45 is signaling
-						move.turnHorizontal(-smallTurn);
+					if (sensorLeft45) {
+						if (sensorRight45) {
+							// LEFT45, RIGHT45 are signaling
+							goForward();
+						} else {
+							// LEFT45 is signaling
+							move.turnHorizontal(smallTurn);
+						}
 					} else {
-						// no sensor is signaling
-						goForward();
+						if (sensorRight45) {
+							// RIGHT45 is signaling
+							move.turnHorizontal(-smallTurn);
+						} else {
+							// no sensor is signaling
+							goForward();
+						}
 					}
 				}
+
+				// HOMEWORK FOR YOU GUYS:
+				// Try to utilize LEFT90 and RIGHT90 sensors and implement wall-following behavior!
+
 			}
-
-			// HOMEWORK FOR YOU GUYS:
-			// Try to utilize LEFT90 and RIGHT90 sensors and implement wall-following behavior!
-
 		}
-
-		/**
-		 * Simple method that starts continuous movement forward + marking the
-		 * situation (i.e., setting {@link RaycastingBot#moving} to true, which
-		 * might be utilized later by the logic).
-		 */
-		protected void goForward() {
-			log.info("AQUI");
-			move.moveContinuos();
-			moving = true;
-		}
-
-
-
-		///////////////////////////////////
-		public static void main(String args[]) throws PogamutException {
+	}
+	/**
+	 * Simple method that starts continuous movement forward + marking the
+	 * situation (i.e., setting {@link RaycastingBot#moving} to true, which
+	 * might be utilized later by the logic).
+	 */
+	protected void goForward() {
+		log.info("AQUI");
+		move.moveContinuos();
+		moving = true;
+	}
 
 
 
-			// starts 10 Hunters at once
-			// note that this is the most easy way to get a bunch of (the same) bots running at the same time
-			// Bots divided into 2 teams
-			new UT2004BotRunner(ReactiveBot.class, "Reactive").setMain(true).startAgents
-			(new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
-					new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount)))
-					/*	new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+	///////////////////////////////////
+	public static void main(String args[]) throws PogamutException {
+
+
+
+		// starts 10 Hunters at once
+		// note that this is the most easy way to get a bunch of (the same) bots running at the same time
+		// Bots divided into 2 teams
+		new UT2004BotRunner(ReactiveBot.class, "Reactive").setMain(true).startAgents
+		(new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount)))
+				/*	new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
     	new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
@@ -485,5 +486,5 @@ public class ReactiveBot extends UT2004BotModuleController {
 
     	new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
     	new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount)))*/);
-		}
 	}
+}
