@@ -25,6 +25,7 @@ import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.pogamut.ut2004.utils.UnrealUtils;
 import cz.cuni.amis.utils.exception.PogamutException;
 import cz.cuni.amis.utils.flag.FlagListener;
+import java.util.Random;
 
 /**
  * Example of Simple Pogamut bot, that randomly walks around the map. Bot is
@@ -343,7 +344,10 @@ public class ReactiveBot extends UT2004BotModuleController {
 
 
 	protected void move() {
-
+            
+                Random rnd = new Random();
+                
+                
 		// if the rays are not initialized yet, do nothing and wait for their initialization 
 		if (!raycasting.getAllRaysInitialized().getFlag()) {
 			log.info("Aqui");
@@ -391,20 +395,33 @@ public class ReactiveBot extends UT2004BotModuleController {
 							// LEFT45, FRONT45 are signaling
 							move.turnHorizontal(-bigTurn);
 							}
-						}else
-							if(){
-								
-							}
+					}else
+                                            if(sensorLeft90){
+						move.turnHorizontal(bigTurn);		
+						}
+                                            else {
+                                                if (rnd.nextInt(1)==1) 
+                                                        move.turnHorizontal(bigTurn);
+                                                else {
+                                                    move.turnHorizontal(-bigTurn);
+                                                }
+                                            }
 					}
 
 				} else {
 					if (sensorRight45) {
+                                            
+                                            if (sensorRight90) {
+                                                if (sensorLeft90) {
+                                            
 						// RIGHT45, FRONT are signaling
 						move.turnHorizontal(-smallTurn);
 					} else {
 						// FRONT is signaling
 						move.turnHorizontal(smallTurn);
 					}
+                                        
+                                     
 				}
 		} else {
 				if (sensorLeft45) {
