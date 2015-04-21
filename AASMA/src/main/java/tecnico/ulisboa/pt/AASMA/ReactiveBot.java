@@ -6,6 +6,7 @@ import cz.cuni.amis.introspection.java.JProp;
 import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
+import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.LevelGeometryModule;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
@@ -15,6 +16,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.RemoveRay;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.StopShooting;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.AutoTraceRay;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ConfigChange;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.FlagInfo;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GameInfo;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.InitedMessage;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
@@ -59,7 +61,7 @@ public class ReactiveBot extends UT2004BotModuleController {
     
     public static int instanceCount;
     
-    private AutoTraceRay left, front, right;
+    private AutoTraceRay left, front, right, bigRight, bigLeft;
     
     /**
      * Flag indicating that the bot has been just executed.
@@ -87,6 +89,22 @@ public class ReactiveBot extends UT2004BotModuleController {
      */
     @JProp
     private boolean sensorFront = false;
+    /**
+     * Whether the right 90º signalizes the collision. (Computed in the
+     * doLogic()) <p><p> Using {@link RaycastingBot#FRONT} as the key for the
+     * ray.
+     */
+    @JProp
+    private boolean sensorRight90 = false;
+    
+    /**
+     * Whether the front sensor signalizes the collision. (Computed in the
+     * doLogic()) <p><p> Using {@link RaycastingBot#FRONT} as the key for the
+     * ray.
+     */
+    @JProp
+    private boolean sensorLeft90 = false;
+    
     /**
      * Whether the bot is moving. (Computed in the doLogic())
      */
@@ -160,7 +178,7 @@ public class ReactiveBot extends UT2004BotModuleController {
      * @param init information about configuration
      */
     @Override
-    public void botInitialized(GameInfo info, ConfigChange currentConfig, InitedMessage init) {
+    public void botInitialized(GameInfo info, ConfigChange currentConfig, InitedMessage init) {   	
         // initialize rays for raycasting
         final int rayLength = (int) (UnrealUtils.CHARACTER_COLLISION_RADIUS * 10);
         // settings for the rays
@@ -191,6 +209,8 @@ public class ReactiveBot extends UT2004BotModuleController {
                 left = raycasting.getRay(LEFT45);
                 front = raycasting.getRay(FRONT);
                 right = raycasting.getRay(RIGHT45);
+                bigRight = raycasting.getRay(RIGHT90);
+                bigLeft = raycasting.getRay(LEFT90);
             }
         });
         // have you noticed the FlagListener interface? The Pogamut is often using {@link Flag} objects that
@@ -223,7 +243,7 @@ public class ReactiveBot extends UT2004BotModuleController {
         weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, true);
     }
     
-
+    
 	/**
 	 * Returns parameters of the bot.
 	 * @return
@@ -247,6 +267,12 @@ public class ReactiveBot extends UT2004BotModuleController {
 			return new Initialize().setDesiredSkill(getParams().getSkillLevel()).setSkin(getParams().getBotSkin()).setTeam(getParams().getTeam()).setName(getParams().getName());
 		}
 	}
+	
+	
+	
+	public FlagInfo getEnemyFlag() {
+		return ctf.getEnemyFlag();
+	}
     
     
 
@@ -260,6 +286,10 @@ public class ReactiveBot extends UT2004BotModuleController {
         // mark that another logic iteration has began
         log.info("--- Logic iteration ---");
         
+        if (carryingFlag()) {
+        	this.move();
+        	return;
+        }
         if (players.canSeeEnemies()){
         	this.stateEngage();
         	return;
@@ -268,6 +298,17 @@ public class ReactiveBot extends UT2004BotModuleController {
         	this.move();
         	return;
         }
+    }
+    
+    protected boolean carryingFlag(){
+    	boolean result = false;
+    	if (this.getEnemyFlag() != null) {
+			UnrealId holderId = getEnemyFlag().getHolder();
+
+			if (getInfo().getId().equals(holderId)) 
+				result = true;
+    	}
+    	return result;
     }
     
     
@@ -296,6 +337,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 	            log.info("Shooting at enemy!!!");
 	        
         }
+        enemy = null;
 
     }
     
@@ -314,9 +356,11 @@ public class ReactiveBot extends UT2004BotModuleController {
         sensorFront = front.isResult();
         sensorLeft45 = left.isResult();
         sensorRight45 = right.isResult();
+        sensorRight90 = bigRight.isResult();
+        sensorLeft90 = bigLeft.isResult();
 
         // is any of the sensor signalig?
-        sensor = sensorFront || sensorLeft45 || sensorRight45;
+        sensor = sensorFront || sensorLeft45 || sensorRight45 || sensorLeft90 || sensorRight90;
 
         if (!sensor) {
             // no sensor are signalizes - just proceed with forward movement
@@ -393,6 +437,9 @@ public class ReactiveBot extends UT2004BotModuleController {
 
     ///////////////////////////////////
     public static void main(String args[]) throws PogamutException {
+    	
+    	
+    	
         // starts 10 Hunters at once
         // note that this is the most easy way to get a bunch of (the same) bots running at the same time
     	// Bots divided into 2 teams
