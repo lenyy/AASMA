@@ -130,7 +130,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 	 * Small rotation (degrees).
 	 */
 	@JProp
-	private int smallTurn = 30;
+	private int smallTurn = 45;
 	/**
 	 * Big rotation (degrees).
 	 */
@@ -389,34 +389,42 @@ public class ReactiveBot extends UT2004BotModuleController {
 					if(sensorRight90){
 						if(sensorLeft90) {
 							// LEFT45, LEFT90, RIGHT45, RIGHT90 and FRONT are signaling
+							log.info("JUMP");
 							move.jump();
 						} 
 						else {
+							log.info("90 Degrees to Left");
 							// LEFT45, FRONT45 are signaling
 							move.turnHorizontal(-bigTurn);
 						}
 					}else
 						if(sensorLeft90){
+							log.info("90 Degrees to Right");
 							move.turnHorizontal(bigTurn);		
 						}
 						else {
-							if (rnd.nextInt(1)==1) 
+							if (rnd.nextInt(1)==1) {
+								
+								log.info("90 Degrees to Right 2");
 								move.turnHorizontal(bigTurn);
+							}
 							else {
+								log.info("90 Degrees to Left 2");
 								move.turnHorizontal(-bigTurn);
 							}
 						}
 				}
-
+			}
 			} else {
 				if (sensorRight45) {
 
 					if (sensorRight90) {
 						if (sensorLeft90) {
-
+							log.info("45 Degrees to Left");
 							// RIGHT45, FRONT are signaling
 							move.turnHorizontal(-smallTurn);
 						} else {
+							log.info("45 Degrees to Right");
 							// FRONT is signaling
 							move.turnHorizontal(smallTurn);
 						}
@@ -427,17 +435,21 @@ public class ReactiveBot extends UT2004BotModuleController {
 					if (sensorLeft45) {
 						if (sensorRight45) {
 							// LEFT45, RIGHT45 are signaling
+							log.info("Forward");
 							goForward();
 						} else {
 							// LEFT45 is signaling
+							log.info("45 Degrees to Right");
 							move.turnHorizontal(smallTurn);
 						}
 					} else {
 						if (sensorRight45) {
 							// RIGHT45 is signaling
+							log.info("45 Degrees to Left");
 							move.turnHorizontal(-smallTurn);
 						} else {
 							// no sensor is signaling
+							log.info("Forward");
 							goForward();
 						}
 					}
@@ -448,7 +460,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 
 			}
 		}
-	}
+	
 	/**
 	 * Simple method that starts continuous movement forward + marking the
 	 * situation (i.e., setting {@link RaycastingBot#moving} to true, which
