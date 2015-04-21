@@ -382,85 +382,162 @@ public class ReactiveBot extends UT2004BotModuleController {
 		}
 
 		// according to the signals, take action...
-		// 8 cases that might happen follows
+		// 32 cases that might happen follows.
 		if (sensorFront) {
-			if (sensorLeft45) {
-				if (sensorRight45) {
-					if(sensorRight90){
-						if(sensorLeft90) {
+			if (sensorLeft45) 
+			{
+				if (sensorRight45) 
+				{
+					if(sensorRight90)
+					{
+						if(sensorLeft90) 
+						{
 							// LEFT45, LEFT90, RIGHT45, RIGHT90 and FRONT are signaling
-							log.info("JUMP");
-							move.jump();
+							log.info("180 degrees to Right");
+							move.turnHorizontal(bigTurn*2);
 						} 
 						else {
 							log.info("90 Degrees to Left");
-							// LEFT45, FRONT45 are signaling
+							// LEFT45, FRONT45, FRONT and RIGHT90 are signaling
 							move.turnHorizontal(-bigTurn);
 						}
-					}else
-						if(sensorLeft90){
+					}
+					else
+					{
+						if(sensorLeft90)
+						{
+							// LEFT45, FRONT45, FRONT and LEFT90 are signaling
 							log.info("90 Degrees to Right");
 							move.turnHorizontal(bigTurn);		
 						}
-						else {
-							if (rnd.nextInt(1)==1) {
-								
+						else 
+						{
+							if (rnd.nextInt(1)==1) 
+							{
+								// LEFT45, FRONT45, FRONT are signaling
 								log.info("90 Degrees to Right 2");
 								move.turnHorizontal(bigTurn);
 							}
-							else {
+							else 
+							{
+								// LEFT45, FRONT45, FRONT are signaling
 								log.info("90 Degrees to Left 2");
 								move.turnHorizontal(-bigTurn);
 							}
 						}
+					}
+				}
+				else 
+				{
+					if(sensorRight90)
+					{
+						if(sensorLeft90)
+						{
+							// LEFT45, LEFT90, RIGHT90, FRONT are signaling
+							log.info("45 Degrees to Right");
+							move.turnHorizontal(smallTurn);
+						}
+						else
+						{
+							// Two rays still available, random solves the problem on choosing one
+							if(rnd.nextInt(1)==1)
+							{
+								// LEFT45, RIGHT90, FRONT are signaling
+								log.info("45 Degrees to Right");
+								move.turnHorizontal(-bigTurn);
+							}
+							else
+							{
+								// LEFT45, RIGHT90, FRONT are signaling
+								log.info("45 Degrees to Right");
+								move.turnHorizontal(smallTurn);
+							}
+						}
+
+					}
+					else
+					{
+						if(sensorLeft90)
+						{
+							// LEFT45, LEFT90, FRONT are signaling
+							log.info("45 Degrees to Right");
+							move.turnHorizontal(smallTurn);
+						}
+					}
+
 				}
 			}
-			} else {
-				if (sensorRight45) {
 
-					if (sensorRight90) {
-						if (sensorLeft90) {
-							log.info("45 Degrees to Left");
-							// RIGHT45, FRONT are signaling
-							move.turnHorizontal(-smallTurn);
-						} else {
+
+		} else {
+			if (sensorRight45)
+			{
+				if(sensorLeft45) 
+				{
+					if (sensorRight90) 
+					{
+						if (sensorLeft90) 
+						{
+							log.info("Forward");
+							// RIGHT45, LEFT45, RIGHT90, LEFT90 are signaling
+							goForward();
+						} 
+						else 
+						{
 							log.info("45 Degrees to Right");
 							// FRONT is signaling
-							move.turnHorizontal(smallTurn);
+							move.turnHorizontal(-bigTurn);
 						}
 
 
 					}
-				} else {
-					if (sensorLeft45) {
-						if (sensorRight45) {
-							// LEFT45, RIGHT45 are signaling
-							log.info("Forward");
-							goForward();
-						} else {
-							// LEFT45 is signaling
-							log.info("45 Degrees to Right");
-							move.turnHorizontal(smallTurn);
-						}
-					} else {
-						if (sensorRight45) {
-							// RIGHT45 is signaling
-							log.info("45 Degrees to Left");
-							move.turnHorizontal(-smallTurn);
-						} else {
-							// no sensor is signaling
-							log.info("Forward");
-							goForward();
-						}
+					else
+					{
+
 					}
 				}
+				else
+				{
 
-				// HOMEWORK FOR YOU GUYS:
-				// Try to utilize LEFT90 and RIGHT90 sensors and implement wall-following behavior!
-
+				}
 			}
+			else 
+			{
+				if (sensorLeft45) 
+				{
+					if (sensorRight45) 
+					{
+						// LEFT45, RIGHT45 are signaling
+						log.info("Forward");
+						goForward();
+					}
+					else
+					{
+						// LEFT45 is signaling
+						log.info("45 Degrees to Right");
+						move.turnHorizontal(smallTurn);
+					}
+				}
+				else 
+				{
+					if (sensorRight45) 
+					{
+						// RIGHT45 is signaling
+						log.info("45 Degrees to Left");
+						move.turnHorizontal(-smallTurn);
+					} 
+					else 
+					{
+						// no sensor is signaling
+						log.info("Forward");
+						goForward();
+					}
+				}
+			}
+
 		}
-	
+	}
+
 	/**
 	 * Simple method that starts continuous movement forward + marking the
 	 * situation (i.e., setting {@link RaycastingBot#moving} to true, which
