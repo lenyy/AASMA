@@ -6,9 +6,9 @@ import cz.cuni.amis.introspection.java.JProp;
 import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
-import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.Players;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.LevelGeometryModule;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Configuration;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.RemoveRay;
@@ -211,6 +211,16 @@ public class ReactiveBot extends UT2004BotModuleController {
 
         // FINAL NOTE: the ray initialization must be done inside botInitialized method or later on inside
         //             botSpawned method or anytime during doLogic method
+        
+     // DEFINE WEAPON PREFERENCES
+        weaponPrefs.addGeneralPref(UT2004ItemType.LIGHTNING_GUN, true);                
+        weaponPrefs.addGeneralPref(UT2004ItemType.SHOCK_RIFLE, true);
+        weaponPrefs.addGeneralPref(UT2004ItemType.MINIGUN, false);
+        weaponPrefs.addGeneralPref(UT2004ItemType.FLAK_CANNON, true);        
+        weaponPrefs.addGeneralPref(UT2004ItemType.ROCKET_LAUNCHER, true);
+        weaponPrefs.addGeneralPref(UT2004ItemType.LINK_GUN, true);
+        weaponPrefs.addGeneralPref(UT2004ItemType.ASSAULT_RIFLE, true);        
+        weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, true);
     }
     
 
@@ -254,8 +264,10 @@ public class ReactiveBot extends UT2004BotModuleController {
         	this.stateEngage();
         	return;
         }
-        
-        this.move();
+        else {
+        	this.move();
+        	return;
+        }
     }
     
     
