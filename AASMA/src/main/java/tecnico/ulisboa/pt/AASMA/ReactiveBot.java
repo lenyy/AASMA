@@ -293,7 +293,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 			this.move();
 			return;
 		}
-		if (players.canSeeEnemies()){
+		if (players.canSeeEnemies() && info.hasWeapon() && weaponry.getCurrentPrimaryAmmo() != 0){
 			this.stateEngage();
 			return;
 		}
