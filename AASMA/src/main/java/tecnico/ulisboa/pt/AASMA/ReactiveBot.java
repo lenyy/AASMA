@@ -287,6 +287,8 @@ public class ReactiveBot extends UT2004BotModuleController {
 		// mark that another logic iteration has began
 		log.info("--- Logic iteration ---");
 
+	
+		
 		if (carryingFlag() && !players.canSeeEnemies()) {
 			this.move();
 			return;
@@ -297,9 +299,9 @@ public class ReactiveBot extends UT2004BotModuleController {
 		}
 		else {
 			// 2) are you shooting? 	-> stop shooting, you've lost your target
-	        if (info.isShooting() || info.isSecondaryShooting()) {
-	            getAct().act(new StopShooting());
-	        }
+			if (info.isShooting() || info.isSecondaryShooting()) {
+				getAct().act(new StopShooting());
+			}
 			this.move();
 			return;
 		}
@@ -320,33 +322,19 @@ public class ReactiveBot extends UT2004BotModuleController {
 	protected void stateEngage(){
 		log.info("Decision is: ENGAGE");
 
-		// 1) pick new enemy if the old one has been lost
-		if (enemy == null || !enemy.isVisible()) 
+		// pick new enemy
+		enemy = players.getNearestVisibleEnemy();
+		if (enemy == null) 
 		{
-			// pick new enemy
-			enemy = players.getNearestVisibleEnemy();
-			if (enemy == null) 
-			{
-				log.info("Can't see any enemies... ???");
-				return;
-			}
-			else 
-			{
-				// 2) or shoot on enemy if it is visible
-				if (shoot.shoot(weaponPrefs, enemy) != null) 
-					log.info("Shooting at enemy!!!");
-			}
+			log.info("Can't see any enemies... ???");
+			return;
 		}
-
-		// 2) stop shooting if enemy is not visible
-		if (!enemy.isVisible()) 
+		else 
 		{
-			if (info.isShooting() || info.isSecondaryShooting()) 
-			{
-				// stop shooting
-				getAct().act(new StopShooting());
-			}
-		} 
+			// 2) or shoot on enemy if it is visible
+			if (shoot.shoot(weaponPrefs, enemy) != null) 
+				log.info("Shooting at enemy!!!");
+		}
 		enemy = null;
 
 	}
@@ -672,9 +660,19 @@ public class ReactiveBot extends UT2004BotModuleController {
 						}
 						else
 						{
-							// RIGHT45 are signaling
-							log.info("Forward");
-							goForward();
+							// Four rays still available, random solves the problem on choosing one
+							if(rnd.nextInt(1)==1)
+							{
+								// RIGHT45 is signaling
+								log.info("Forward");
+								goForward();
+							}
+							else
+							{
+								//RIGHT45 is signaling
+								log.info("45 Degrees to Left 2");
+								move.turnHorizontal(-smallTurn);
+							}
 						}
 					}
 				}
@@ -737,19 +735,19 @@ public class ReactiveBot extends UT2004BotModuleController {
 		// Bots divided into 2 teams
 		new UT2004BotRunner(ReactiveBot.class, "Reactive").setMain(true).startAgents
 		(new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
-				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount)))
-				/*	new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
-    	new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
-      	new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
-      	new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
-    	new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
-    	new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
-    	new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
-    	new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
-    	new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount)))*/);
+				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+
+				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))));
 	}
 }

@@ -85,15 +85,7 @@ public class CustomControlServer extends UT2004Server implements IUT2004Server {
     
     
 
-    /*
-     * BeginMessage listener - we get current server time here.
-     */
-    IWorldEventListener<BeginMessage> myBeginMessageListener = new IWorldEventListener<BeginMessage>() {
-        public void notify(BeginMessage event) {
-            currentUTTime = event.getTime();
-            System.out.println("Begin: " + event.toString());
-        }
-    };
+ 
 
     /*
      * Player listener - we simply print out all player messages we receive.
@@ -127,7 +119,7 @@ public class CustomControlServer extends UT2004Server implements IUT2004Server {
     @Override
     protected void init() {
     	super.init();
-        getWorldView().addEventListener(BeginMessage.class, myBeginMessageListener);
+
         getWorldView().addObjectListener(Player.class, myPlayerListener);
         getWorldView().addObjectListener(TeamScore.class, teamScoreListener);
         log.info("ControlConnection initialized.");
@@ -138,7 +130,7 @@ public class CustomControlServer extends UT2004Server implements IUT2004Server {
      */
     @Override
     protected void reset() {
-    	getWorldView().removeEventListener(BeginMessage.class, myBeginMessageListener);
+    	
         getWorldView().removeObjectListener(Player.class, myPlayerListener);
         getWorldView().removeObjectListener(TeamScore.class, teamScoreListener);
     	super.reset();
@@ -167,7 +159,8 @@ public class CustomControlServer extends UT2004Server implements IUT2004Server {
         
         cts.init();
         
-        cts.setGameMap(cts.Joust);
+        cts.setGameMap(cts.faceClassic);
+   
      
         
     }
