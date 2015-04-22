@@ -287,7 +287,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 		// mark that another logic iteration has began
 		log.info("--- Logic iteration ---");
 
-		if (carryingFlag()) {
+		if (carryingFlag() && !players.canSeeEnemies()) {
 			this.move();
 			return;
 		}
@@ -296,6 +296,10 @@ public class ReactiveBot extends UT2004BotModuleController {
 			return;
 		}
 		else {
+			// 2) are you shooting? 	-> stop shooting, you've lost your target
+	        if (info.isShooting() || info.isSecondaryShooting()) {
+	            getAct().act(new StopShooting());
+	        }
 			this.move();
 			return;
 		}
@@ -317,27 +321,32 @@ public class ReactiveBot extends UT2004BotModuleController {
 		log.info("Decision is: ENGAGE");
 
 		// 1) pick new enemy if the old one has been lost
-		if (enemy == null || !enemy.isVisible()) {
+		if (enemy == null || !enemy.isVisible()) 
+		{
 			// pick new enemy
-			enemy = players.getNearestVisiblePlayer(players.getVisibleEnemies().values());
-			if (enemy == null) {
+			enemy = players.getNearestVisibleEnemy();
+			if (enemy == null) 
+			{
 				log.info("Can't see any enemies... ???");
 				return;
+			}
+			else 
+			{
+				// 2) or shoot on enemy if it is visible
+				if (shoot.shoot(weaponPrefs, enemy) != null) 
+					log.info("Shooting at enemy!!!");
 			}
 		}
 
 		// 2) stop shooting if enemy is not visible
-		if (!enemy.isVisible()) {
-			if (info.isShooting() || info.isSecondaryShooting()) {
+		if (!enemy.isVisible()) 
+		{
+			if (info.isShooting() || info.isSecondaryShooting()) 
+			{
 				// stop shooting
 				getAct().act(new StopShooting());
 			}
-		} else {
-			// 2) or shoot on enemy if it is visible
-			if (shoot.shoot(weaponPrefs, enemy) != null) 
-				log.info("Shooting at enemy!!!");
-
-		}
+		} 
 		enemy = null;
 
 	}
@@ -712,7 +721,6 @@ public class ReactiveBot extends UT2004BotModuleController {
 	 * might be utilized later by the logic).
 	 */
 	protected void goForward() {
-		log.info("AQUI");
 		move.moveContinuos();
 		moving = true;
 	}
