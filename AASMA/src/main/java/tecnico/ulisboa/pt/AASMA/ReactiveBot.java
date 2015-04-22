@@ -443,13 +443,13 @@ public class ReactiveBot extends UT2004BotModuleController {
 							if(rnd.nextInt(1)==1)
 							{
 								// LEFT45, RIGHT90, FRONT are signaling
-								log.info("45 Degrees to Right");
+								log.info("90 Degrees to Left 3");
 								move.turnHorizontal(-bigTurn);
 							}
 							else
 							{
 								// LEFT45, RIGHT90, FRONT are signaling
-								log.info("45 Degrees to Right");
+								log.info("45 Degrees to Right 2");
 								move.turnHorizontal(smallTurn);
 							}
 						}
@@ -463,79 +463,247 @@ public class ReactiveBot extends UT2004BotModuleController {
 							log.info("45 Degrees to Right");
 							move.turnHorizontal(smallTurn);
 						}
+						else
+						{
+							// LEFT45, FRONT are signaling
+							log.info("90 Degrees to Right");
+							move.turnHorizontal(bigTurn);
+						}
 					}
 
 				}
 			}
-
-
-		} else {
-			if (sensorRight45)
+			else
 			{
-				if(sensorLeft45) 
+				if(sensorRight45)
 				{
-					if (sensorRight90) 
+					if(sensorLeft90)
 					{
-						if (sensorLeft90) 
+						if(sensorRight90)
 						{
-							log.info("Forward");
-							// RIGHT45, LEFT45, RIGHT90, LEFT90 are signaling
-							goForward();
-						} 
-						else 
-						{
-							log.info("45 Degrees to Right");
-							// FRONT is signaling
-							move.turnHorizontal(-bigTurn);
+							// RIGHT45, LEFT90, RIGHT90, FRONT are signaling
+							log.info("45 Degrees to Left");
+							move.turnHorizontal(-smallTurn);
 						}
-
-
+						else
+						{
+							// LEFT90, RIGHT45, FRONT are signaling
+							log.info("90 Degrees to Right");
+							move.turnHorizontal(bigTurn);
+						}
 					}
 					else
 					{
-
+						if(sensorRight90)
+						{
+							// RIGHT45, RIGHT90, FRONT are signaling
+							log.info("45 Degrees to Left");
+							move.turnHorizontal(-smallTurn);
+						}
+						else
+						{
+							// RIGHT45, FRONT are signaling
+							log.info("90 Degrees to Left");
+							move.turnHorizontal(-bigTurn);
+						}
 					}
 				}
 				else
 				{
-
-				}
-			}
-			else 
-			{
-				if (sensorLeft45) 
-				{
-					if (sensorRight45) 
+					if(sensorLeft90)
 					{
-						// LEFT45, RIGHT45 are signaling
-						log.info("Forward");
-						goForward();
+						if(sensorRight90)
+						{
+							// LEFT90, RIGHT90, FRONT are signaling
+							log.info("45 Degrees to Left");
+							move.turnHorizontal(-smallTurn);
+						}
+						else
+						{
+							// LEFT90, FRONT are signaling
+							log.info("90 Degrees to Right");
+							move.turnHorizontal(bigTurn);
+						}
 					}
 					else
 					{
-						// LEFT45 is signaling
-						log.info("45 Degrees to Right");
-						move.turnHorizontal(smallTurn);
+						if(sensorRight90)
+						{
+							// RIGHT90, FRONT are signaling
+							log.info("45 Degrees to Left");
+							move.turnHorizontal(-smallTurn);
+						}
+						else
+						{
+							// FRONT are signaling
+							log.info("90 Degrees to Left");
+							move.turnHorizontal(-bigTurn);
+						}
+					}
+				}
+			}
+		} 
+		else 
+		{
+			if (sensorLeft45) 
+			{
+				if (sensorRight45) 
+				{
+					if(sensorRight90)
+					{
+						if(sensorLeft90) 
+						{
+							// LEFT45, LEFT90, RIGHT45, RIGHT90 are signaling
+							log.info("Forward");
+							goForward();						
+						} 
+						else {
+							// LEFT45, RIGHT45, RIGHT90 are signaling
+							log.info("90 Degrees to Left 2");
+							move.turnHorizontal(-bigTurn);
+						}
+					}
+					else
+					{
+						if(sensorLeft90)
+						{
+							// LEFT45, RIGHT45 and LEFT90 are signaling
+							log.info("Forward");
+							goForward();		
+						}
+						else 
+						{
+							if (rnd.nextInt(1)==1) 
+							{
+								// LEFT45, RIGHT45 are signaling
+								log.info("90 Degrees to Right 2");
+								move.turnHorizontal(bigTurn);
+							}
+							else 
+							{
+								// LEFT45, RIGHT45 are signaling
+								log.info("90 Degrees to Left 2");
+								move.turnHorizontal(-bigTurn);
+							}
+						}
 					}
 				}
 				else 
 				{
-					if (sensorRight45) 
+					if(sensorRight90)
 					{
-						// RIGHT45 is signaling
-						log.info("45 Degrees to Left");
-						move.turnHorizontal(-smallTurn);
-					} 
-					else 
+						if(sensorLeft90)
+						{
+							// LEFT45, LEFT90, RIGHT90 are signaling
+							log.info("45 Degrees to Right");
+							move.turnHorizontal(smallTurn);
+						}
+						else
+						{
+							// Two rays still available, random solves the problem on choosing one
+							if(rnd.nextInt(1)==1)
+							{
+								// LEFT45, RIGHT90 are signaling
+								log.info("90 Degrees to Left 3");
+								move.turnHorizontal(-bigTurn);
+							}
+							else
+							{
+								// LEFT45, RIGHT90 are signaling
+								log.info("45 Degrees to Right 2");
+								move.turnHorizontal(smallTurn);
+							}
+						}
+
+					}
+					else
 					{
-						// no sensor is signaling
-						log.info("Forward");
-						goForward();
+						if(sensorLeft90)
+						{
+							// LEFT45, LEFT90 are signaling
+							log.info("Forward");
+							goForward();
+						}
+						else
+						{
+							// LEFT45, FRONT are signaling
+							log.info("90 Degrees to Right");
+							move.turnHorizontal(bigTurn);
+						}
+					}
+
+				}
+			}
+			else
+			{
+				if(sensorRight45)
+				{
+					if(sensorLeft90)
+					{
+						if(sensorRight90)
+						{
+							// RIGHT45, LEFT90, RIGHT90 are signaling
+							log.info("Forward");
+							goForward();
+						}
+						else
+						{
+							// LEFT90, RIGHT45 are signaling
+							log.info("90 Degrees to Right");
+							move.turnHorizontal(bigTurn);
+						}
+					}
+					else
+					{
+						if(sensorRight90)
+						{
+							// RIGHT45, RIGHT90 are signaling
+							log.info("45 Degrees to Left");
+							move.turnHorizontal(-smallTurn);
+						}
+						else
+						{
+							// RIGHT45 are signaling
+							log.info("Forward");
+							goForward();
+						}
+					}
+				}
+				else
+				{
+					if(sensorLeft90)
+					{
+						if(sensorRight90)
+						{
+							// LEFT90, RIGHT90 are signaling
+							log.info("45 Degrees to Left");
+							move.turnHorizontal(-smallTurn);
+						}
+						else
+						{
+							// LEFT90 are signaling
+							log.info("Forward");
+							goForward();
+						}
+					}
+					else
+					{
+						if(sensorRight90)
+						{
+							// RIGHT90 are signaling
+							log.info("45 Degrees to Left");
+							move.turnHorizontal(-smallTurn);
+						}
+						else
+						{
+							// No signaling
+							log.info("Forward");
+							goForward();
+						}
 					}
 				}
 			}
-
-		}
+		} 
 	}
 
 	/**
