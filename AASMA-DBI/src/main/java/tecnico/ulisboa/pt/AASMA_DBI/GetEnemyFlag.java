@@ -39,7 +39,6 @@ public class GetEnemyFlag extends Goal {
 			bot.getLog().info("goTo enemyFlagBase null");
 			bot.goTo(bot.getEnemyFlagBase());
 		}
-
 		bot.updateFight();
 	}
 

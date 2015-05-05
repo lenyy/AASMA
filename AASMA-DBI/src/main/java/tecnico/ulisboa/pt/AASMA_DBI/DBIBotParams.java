@@ -58,4 +58,16 @@ public class DBIBotParams extends UT2004BotParameters {
 		return this;
 	}
 	
+	/**
+	 * Sets the Bot team. Notice the return value - we will return the very same object so you will be able to chain your setters,
+	 * see {@link BotWithParams#main(String[])}.
+	 * @param rotating
+	 * @return
+	 */
+	public DBIBotParams setTeam(int team) 
+	{
+		super.setTeam(team);
+		return this;
+	}
+	
 }

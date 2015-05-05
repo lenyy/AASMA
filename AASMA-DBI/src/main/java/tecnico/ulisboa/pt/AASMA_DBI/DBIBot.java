@@ -175,13 +175,9 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		weaponPrefs.addGeneralPref(UT2004ItemType.FLAK_CANNON, true);
 		weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, true);
 
-		goalManager = new GoalManager(this.bot);
+		bdiArchitecture = new BDIArchitecture(this);
 
-		goalManager.addGoal(new GetEnemyFlag(this));
-		goalManager.addGoal(new GetOurFlag(this));
-		goalManager.addGoal(new GetHealth(this));
-		goalManager.addGoal(getItemsGoal = new GetItems(this));
-		goalManager.addGoal(new CloseInOnEnemy(this));
+		
 	}
 
 	@Override
@@ -212,7 +208,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		PogamutJVMComm.getInstance().unregisterAgent(bot);
 	}
 
-	protected GoalManager goalManager = null;
+	protected BDIArchitecture bdiArchitecture = null;
 	
 	protected final Heatup targetHU = new Heatup(5000);
 
@@ -369,7 +365,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	 */
 	@Override
 	public void logic() {
-		goalManager.executeBestGoal();
+		bdiArchitecture.BDIPlanner();
 		
 		log.info("OUR FLAG:                      " + ctf.getOurFlag());
 		log.info("OUR BASE:                      " + ctf.getOurBase());
