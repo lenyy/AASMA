@@ -6,7 +6,7 @@ import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 public class GetEnemyFlag extends Goal {
 
 
-	public GetEnemyFlag(CTFBot bot) {
+	public GetEnemyFlag(DBIBot bot) {
 		super(bot);
 	}
 

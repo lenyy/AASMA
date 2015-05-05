@@ -2,9 +2,9 @@ package tecnico.ulisboa.pt.AASMA_DBI;
 
 public abstract class Goal implements IGoal {
 
-	protected CTFBot bot;
+	protected DBIBot bot;
 
-	public Goal(CTFBot bot) {
+	public Goal(DBIBot bot) {
 		this.bot = bot;
 	}
 

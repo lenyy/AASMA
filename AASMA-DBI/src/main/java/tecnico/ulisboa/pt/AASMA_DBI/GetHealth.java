@@ -9,7 +9,7 @@ public class GetHealth extends Goal {
 
 	protected Item health = null;
 
-	public GetHealth(CTFBot bot) {
+	public GetHealth(DBIBot bot) {
 		super(bot);
 	}
 

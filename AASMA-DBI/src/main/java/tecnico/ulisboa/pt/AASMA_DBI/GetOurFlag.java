@@ -10,7 +10,7 @@ public class GetOurFlag extends Goal {
 	protected Player enemy = null;
 	Location flagLocation;
 
-	public GetOurFlag(CTFBot bot) {
+	public GetOurFlag(DBIBot bot) {
 		super(bot);
 	}
 

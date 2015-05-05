@@ -6,7 +6,7 @@ public class CloseInOnEnemy extends Goal {
 
 	protected boolean runningToPlayer = false;
 
-	public CloseInOnEnemy(CTFBot bot) {
+	public CloseInOnEnemy(DBIBot bot) {
 		super(bot);
 	}
 

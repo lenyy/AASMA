@@ -8,7 +8,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
  * 
  * @author Jimmy
  */
-public class CTFBotParams extends UT2004BotParameters {
+public class DBIBotParams extends UT2004BotParameters {
 
 	/**
 	 * This will represent bot skin to be used during initialization, i.e., {@link Initialize#setSkin(String)}.
@@ -35,7 +35,7 @@ public class CTFBotParams extends UT2004BotParameters {
 	 * @param botSkin
 	 * @return
 	 */
-	public CTFBotParams setBotSkin(String botSkin) {
+	public DBIBotParams setBotSkin(String botSkin) {
 		this.botSkin = botSkin;
 		return this;
 	}
@@ -53,7 +53,7 @@ public class CTFBotParams extends UT2004BotParameters {
 	 * @param skillLevel
 	 * @return
 	 */
-	public CTFBotParams setSkillLevel(int skillLevel) {
+	public DBIBotParams setSkillLevel(int skillLevel) {
 		this.skillLevel = skillLevel;
 		return this;
 	}

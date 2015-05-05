@@ -10,7 +10,7 @@ public class GetItems extends Goal {
 	protected Item item;
 	protected LinkedList<Item> itemsToRunAround;
 
-	public GetItems(CTFBot bot) {
+	public GetItems(DBIBot bot) {
 		super(bot);
 		item = null;
 	}

@@ -42,7 +42,7 @@ import cz.cuni.amis.utils.flag.FlagListener;
  * @author Jimmy
  */
 @AgentScoped
-public class CTFBot extends UT2004BotModuleController<UT2004Bot> {
+public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 
 	/** boolean switch to activate engage behavior */
 	@JProp
@@ -88,9 +88,9 @@ public class CTFBot extends UT2004BotModuleController<UT2004Bot> {
 	 * Returns parameters of the bot.
 	 * @return
 	 */
-	public CTFBotParams getParams() {
-		if (!(bot.getParams() instanceof CTFBotParams)) return null;
-		return (CTFBotParams)bot.getParams();
+	public DBIBotParams getParams() {
+		if (!(bot.getParams() instanceof DBIBotParams)) return null;
+		return (DBIBotParams)bot.getParams();
 	}
 	
 	public Location getPathTarget() {
@@ -322,7 +322,7 @@ public class CTFBot extends UT2004BotModuleController<UT2004Bot> {
 
 	/**
 	 * Global anti-stuck mechanism. When this counter reaches a certain
-	 * constant, the bot's mind gets a {@link CTFBot#reset()}.
+	 * constant, the bot's mind gets a {@link DBIBot#reset()}.
 	 */
 	protected int notMoving = 0;
 
@@ -405,12 +405,12 @@ public class CTFBot extends UT2004BotModuleController<UT2004Bot> {
 	public static void main(String args[]) throws PogamutException {
 		// starts 2 or 4 CTFBots at once
 		// note that this is the most easy way to get a bunch of bots running at the same time
-		new UT2004BotRunner<UT2004Bot, UT2004BotParameters>(CTFBot.class, "CTFBot").setMain(true)
+		new UT2004BotRunner<UT2004Bot, UT2004BotParameters>(DBIBot.class, "CTFBot").setMain(true)
 			.startAgents(
-				new CTFBotParams().setBotSkin("HumanMaleA.MercMaleC")       .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("CTFBot"))
-				//,new CTFBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
-				//,new CTFBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
-				//,new CTFBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
+				new DBIBotParams().setBotSkin("HumanMaleA.MercMaleC")       .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("DBIBot"))
+				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
+				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
+				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
 			);
 		
 	}
