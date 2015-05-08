@@ -59,10 +59,17 @@ public class ReactiveBot extends UT2004BotModuleController {
 	protected static final String LEFT90 = "left90Ray";
 	protected static final String RIGHT45 = "right45Ray";
 	protected static final String RIGHT90 = "right90Ray";
+        
+        protected static final String FRONT_FLOOR = "frontFloorRay";
+        protected static final String LEFT_FLOOR45 = "leftFloor45Ray";
+        protected static final String RIGHT_FLOOR45 = "rightFloor45Ray";
+        protected static final String LEFT_FLOOR90 = "leftFloor90Ray";
+        protected static final String RIGHT_FLOOR90 = "rightFloor90Ray";
 
 	public static int instanceCount;
 
-	private AutoTraceRay left, front, right, bigRight, bigLeft;
+	private AutoTraceRay left, front, right, bigRight, bigLeft, floorLeft45, floorRight45, floorLeft90,
+                floorRight90 ,floorFront;
 
 	/**
 	 * Flag indicating that the bot has been just executed.
@@ -105,6 +112,21 @@ public class ReactiveBot extends UT2004BotModuleController {
 	 */
 	@JProp
 	private boolean sensorLeft90 = false;
+        
+        @JProp
+        private boolean sensorFloorLeft45 = false;
+
+        @JProp
+        private boolean sensorFloorRight45 = false;
+        
+        @JProp
+        private boolean sensorFloorLeft90 = false;
+
+        @JProp
+        private boolean sensorFloorRight90 = false;
+
+        @JProp
+        private boolean sensorFloorFront = false;
 
 	/**
 	 * Whether the bot is moving. (Computed in the doLogic())
@@ -120,6 +142,10 @@ public class ReactiveBot extends UT2004BotModuleController {
 	/**
 	 * How much time should we wait for the rotation to finish (milliseconds).
 	 */
+        
+        @JProp
+        private boolean sensorFloor = false;
+        
 	@JProp
 	private int turnSleep = 250;
 	/**
@@ -182,6 +208,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 	public void botInitialized(GameInfo info, ConfigChange currentConfig, InitedMessage init) {   	
 		// initialize rays for raycasting
 		final int rayLength = (int) (UnrealUtils.CHARACTER_COLLISION_RADIUS * 10);
+                final int rayLengthFloor = (int) (UnrealUtils.CHARACTER_COLLISION_RADIUS * 7);
 		// settings for the rays
 		boolean fastTrace = true;        // perform only fast trace == we just need true/false information
 		boolean floorCorrection = false; // provide floor-angle correction for the ray (when the bot is running on the skewed floor, the ray gets rotated to match the skew)
@@ -198,6 +225,12 @@ public class ReactiveBot extends UT2004BotModuleController {
 		// note that we will use only three of them, so feel free to experiment with LEFT90 and RIGHT90 for yourself
 		raycasting.createRay(LEFT90,  new Vector3d(0, -1, 0), rayLength, fastTrace, floorCorrection, traceActor);
 		raycasting.createRay(RIGHT90, new Vector3d(0, 1, 0), rayLength, fastTrace, floorCorrection, traceActor);
+                
+                raycasting.createRay(LEFT_FLOOR45,  new Vector3d(2, -1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+                raycasting.createRay(FRONT_FLOOR,   new Vector3d(2, 0, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+                raycasting.createRay(RIGHT_FLOOR45, new Vector3d(2, 1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+                raycasting.createRay(LEFT_FLOOR90,  new Vector3d(0, -1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+		raycasting.createRay(RIGHT_FLOOR90, new Vector3d(0, 1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
 
 
 		// register listener called when all rays are set up in the UT engine
@@ -212,6 +245,12 @@ public class ReactiveBot extends UT2004BotModuleController {
 				right = raycasting.getRay(RIGHT45);
 				bigRight = raycasting.getRay(RIGHT90);
 				bigLeft = raycasting.getRay(LEFT90);
+                                
+                                floorLeft45 = raycasting.getRay(LEFT_FLOOR45);
+                                floorFront = raycasting.getRay(FRONT_FLOOR);
+                                floorRight45 = raycasting.getRay(RIGHT_FLOOR45);
+                                floorLeft90 = raycasting.getRay(LEFT_FLOOR90);
+                                floorRight90 = raycasting.getRay(RIGHT_FLOOR90);
 			}
 		});
 		// have you noticed the FlagListener interface? The Pogamut is often using {@link Flag} objects that
@@ -359,11 +398,18 @@ public class ReactiveBot extends UT2004BotModuleController {
 		sensorRight45 = right.isResult();
 		sensorRight90 = bigRight.isResult();
 		sensorLeft90 = bigLeft.isResult();
+                
+                sensorFloorFront = floorFront.isResult();
+                sensorFloorLeft45 = floorLeft45.isResult();
+                sensorFloorRight45 = floorRight45.isResult();
+                sensorFloorLeft90 = floorLeft90.isResult();
+                sensorFloorRight90 = floorRight90.isResult();
 
 		// is any of the sensor signalig?
 		sensor = sensorFront || sensorLeft45 || sensorRight45 || sensorLeft90 || sensorRight90;
+                sensorFloor = sensorFloorFront && sensorFloorLeft45 && sensorFloorRight45 && sensorFloorLeft90 && sensorFloorRight90;
 
-		if (!sensor) {
+		if (!sensor && sensorFloor) {
 			// no sensor are signalizes - just proceed with forward movement
 			goForward();
 			return;
@@ -380,14 +426,14 @@ public class ReactiveBot extends UT2004BotModuleController {
 
 		// according to the signals, take action...
 		// 32 cases that might happen follows.
-		if (sensorFront) {
-			if (sensorLeft45) 
+		if (sensorFront || !sensorFloorFront) {
+			if (sensorLeft45 || !sensorFloorLeft45) 
 			{
-				if (sensorRight45) 
+				if (sensorRight45 || !sensorFloorRight45) 
 				{
-					if(sensorRight90)
+					if(sensorRight90 || !sensorFloorRight90)
 					{
-						if(sensorLeft90) 
+						if(sensorLeft90 || !sensorFloorLeft90) 
 						{
 							// LEFT45, LEFT90, RIGHT45, RIGHT90 and FRONT are signaling
 							log.info("180 degrees to Right");
@@ -401,7 +447,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorLeft90)
+						if(sensorLeft90 || !sensorFloorLeft90)
 						{
 							// LEFT45, FRONT45, FRONT and LEFT90 are signaling
 							log.info("90 Degrees to Right");
@@ -426,9 +472,9 @@ public class ReactiveBot extends UT2004BotModuleController {
 				}
 				else 
 				{
-					if(sensorRight90)
+					if(sensorRight90 || !sensorFloorRight90)
 					{
-						if(sensorLeft90)
+						if(sensorLeft90 || !sensorFloorLeft90)
 						{
 							// LEFT45, LEFT90, RIGHT90, FRONT are signaling
 							log.info("45 Degrees to Right");
@@ -454,7 +500,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorLeft90)
+						if(sensorLeft90 || !sensorFloorLeft90)
 						{
 							// LEFT45, LEFT90, FRONT are signaling
 							log.info("45 Degrees to Right");
@@ -472,11 +518,11 @@ public class ReactiveBot extends UT2004BotModuleController {
 			}
 			else
 			{
-				if(sensorRight45)
+				if(sensorRight45 || !sensorFloorRight45)
 				{
-					if(sensorLeft90)
+					if(sensorLeft90 || !sensorFloorLeft90)
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// RIGHT45, LEFT90, RIGHT90, FRONT are signaling
 							log.info("45 Degrees to Left");
@@ -491,7 +537,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// RIGHT45, RIGHT90, FRONT are signaling
 							log.info("45 Degrees to Left");
@@ -507,9 +553,9 @@ public class ReactiveBot extends UT2004BotModuleController {
 				}
 				else
 				{
-					if(sensorLeft90)
+					if(sensorLeft90 || !sensorFloorLeft90)
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// LEFT90, RIGHT90, FRONT are signaling
 							log.info("45 Degrees to Left");
@@ -524,7 +570,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// RIGHT90, FRONT are signaling
 							log.info("45 Degrees to Left");
@@ -542,13 +588,13 @@ public class ReactiveBot extends UT2004BotModuleController {
 		} 
 		else 
 		{
-			if (sensorLeft45) 
+			if (sensorLeft45 || !sensorFloorLeft45) 
 			{
-				if (sensorRight45) 
+				if (sensorRight45 || !sensorFloorRight45) 
 				{
-					if(sensorRight90)
+					if(sensorRight90 || !sensorFloorRight90)
 					{
-						if(sensorLeft90) 
+						if(sensorLeft90 || !sensorFloorLeft90) 
 						{
 							// LEFT45, LEFT90, RIGHT45, RIGHT90 are signaling
 							log.info("Forward");
@@ -562,7 +608,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorLeft90)
+						if(sensorLeft90 || !sensorFloorLeft90)
 						{
 							// LEFT45, RIGHT45 and LEFT90 are signaling
 							log.info("Forward");
@@ -587,9 +633,9 @@ public class ReactiveBot extends UT2004BotModuleController {
 				}
 				else 
 				{
-					if(sensorRight90)
+					if(sensorRight90 || !sensorFloorRight90)
 					{
-						if(sensorLeft90)
+						if(sensorLeft90 || !sensorFloorLeft90)
 						{
 							// LEFT45, LEFT90, RIGHT90 are signaling
 							log.info("45 Degrees to Right");
@@ -615,7 +661,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorLeft90)
+						if(sensorLeft90 || !sensorFloorLeft90)
 						{
 							// LEFT45, LEFT90 are signaling
 							log.info("Forward");
@@ -633,11 +679,11 @@ public class ReactiveBot extends UT2004BotModuleController {
 			}
 			else
 			{
-				if(sensorRight45)
+				if(sensorRight45 || !sensorFloorRight45)
 				{
-					if(sensorLeft90)
+					if(sensorLeft90 || !sensorFloorLeft90)
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// RIGHT45, LEFT90, RIGHT90 are signaling
 							log.info("Forward");
@@ -652,7 +698,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// RIGHT45, RIGHT90 are signaling
 							log.info("45 Degrees to Left");
@@ -678,9 +724,9 @@ public class ReactiveBot extends UT2004BotModuleController {
 				}
 				else
 				{
-					if(sensorLeft90)
+					if(sensorLeft90 || !sensorFloorLeft90)
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// LEFT90, RIGHT90 are signaling
 							log.info("45 Degrees to Left");
@@ -695,7 +741,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 					}
 					else
 					{
-						if(sensorRight90)
+						if(sensorRight90 || !sensorFloorRight90)
 						{
 							// RIGHT90 are signaling
 							log.info("45 Degrees to Left");
@@ -734,7 +780,7 @@ public class ReactiveBot extends UT2004BotModuleController {
 		// note that this is the most easy way to get a bunch of (the same) bots running at the same time
 		// Bots divided into 2 teams
 		new UT2004BotRunner(ReactiveBot.class, "Reactive").setMain(true).startAgents
-		(new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
+		(new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount)))/**,
 
 				new CustomBotParameters().setTeam(0).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
@@ -748,6 +794,6 @@ public class ReactiveBot extends UT2004BotModuleController {
 				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
 
 				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))),
-				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount))));
+				new CustomBotParameters().setTeam(1).setSkillLevel(5).setAgentId(new AgentId ("Reactive - " + (++instanceCount)))*/);
 	}
 }
