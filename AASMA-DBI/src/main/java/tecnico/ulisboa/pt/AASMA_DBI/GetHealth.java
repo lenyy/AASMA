@@ -45,32 +45,20 @@ public class GetHealth extends Goal {
 				|| !bot.getInfo().getId()
 						.equals(bot.getEnemyFlag().getHolder())) {
 			bot.goTo(health);
+			setFinished(true);
 		}
 
 	}
 
-	@Override
-	public double getPriority() {
-
-		if (bot.getItems().getAllItems(Category.HEALTH).size() > 0 &&
-				bot.getInfo().getHealth() < 20 && !(
-				bot.getEnemyFlag() != null
-						&& bot.getInfo().getId()
-								.equals(bot.getEnemyFlag().getHolder())
-					&& bot.getInfo().atLocation(bot.getOurFlagBase(), 5d)))
-			return 100d;
-
-		return 0d;
-	}
 
 	@Override
 	public boolean hasFailed() {
-		return false;
+		return this.failed;
 	}
 
 	@Override
 	public boolean hasFinished() {
-		return false;
+		return this.finished;
 	}
 
 	@Override

@@ -1,16 +1,30 @@
 package tecnico.ulisboa.pt.AASMA_DBI;
 
-import java.util.LinkedList;
+import java.util.HashMap;
 
+import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
+import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType.Category;
 
 public class BDIArchitecture {
-	protected final LinkedList<IGoal> goals = new LinkedList<IGoal>();
-	protected IGoal currentGoal = null;
-	protected DBIBot bot;
+	protected final HashMap<String,Goal> goals = new HashMap<String,Goal>();
+	protected Goal currentGoal = null;
+	protected UT2004Bot bot;
+	protected DBIBot dbiBot;
 
-	public BDIArchitecture(DBIBot bot) {
+	public BDIArchitecture(UT2004Bot bot, DBIBot dbiBot) {
 		this.bot = bot;
+		this.dbiBot = dbiBot;
+	}
+
+
+	public boolean addGoal(Goal goal, String description) {
+		if (!goals.containsKey(description)) {
+			goals.put(description, goal);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 
@@ -18,66 +32,101 @@ public class BDIArchitecture {
 	{
 		String result = "";
 
-		if (bot.getEnemyFlag().getHolder().equals(bot.getInfo().getId()))
-		{
-			result = "GO TO BASE";
-		}
-		else
-		{
-			if(bot.getEnemyFlag() != null && bot.getOurFlag().getHolder() == null && bot.getEnemyFlag().getHolder() == null)
+		if(dbiBot.getEnemyFlag() != null) {
+			UnrealId holderId = dbiBot.getEnemyFlag().getHolder();
+
+			if (dbiBot.getInfo().getId().equals(holderId))
 			{
-				result = "GET ENEMY FLAG";
+				result = "GO HOME";
+				dbiBot.getLog().info("GO HOME");
 			}
 			else
 			{
-				if(bot.getInfo().getHealth() < 20 && bot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
-				{
-					result = "GET HEALTH";
+				if( !dbiBot.getOurFlag().getState().equalsIgnoreCase("home")) {
+					result = "GET OUR FLAG";
+					dbiBot.getLog().info("GET OUR FLAG");
 				}
-				else
-				{
-					result = "GET ITEMS";
+				else {
+					if(dbiBot.getCTF().isEnemyFlagHome() && dbiBot.getCTF().isOurFlagHome())
+					{
+						result = "GET ENEMY FLAG";
+						dbiBot.getLog().info("GET ENEMY FLAG");
+					}
+					else
+					{
+						if(dbiBot.getInfo().getHealth() < 20 && dbiBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+						{
+							result = "GET HEALTH";
+							dbiBot.getLog().info("GET HEALTH");
+						}
+						else
+						{
+							result = "GET ITEMS";
+							dbiBot.getLog().info("GET ITEMS");
+						}
+					}
 				}
 			}
 		}
+		else
+		{
+			result = "GET ENEMY FLAG";
+			dbiBot.getLog().info("GET ENEMY FLAG 2");
+		}
 
 
 		return result;
 	}
-	
-	public Goal Intention(String option) {
+
+
+
+	public Goal intention(String Option) 
+	{
 		Goal result = null;
-		
-		if(option.equals("GET ENEMY FLAG"))
+
+		if (goals.containsKey(Option)) 
 		{
-			result = new GetEnemyFlag(this.bot);
+			result = goals.get(Option);
 		}
-		if(option.equals("GET HEALTH")) 
-		{
-			result = new GetHealth(this.bot);	
-		}
-		if(option.equals("GET ITEMS"))
-		{
-			result = new GetItems(this.bot);
-		}
-		
+
 		return result;
 	}
 
-	public IGoal BDIPlanner() {
-		
-		
 
-		return currentGoal;
-	}
-
-	public IGoal getCurrentGoal() {
-		return currentGoal;
-	}
-
-	public void abandonAllGoals() {
-		for (IGoal goal : goals) {
-			goal.abandon();
+	public void BDIPlanner() {
+		if(currentGoal != null) {
+			if(currentGoal.hasFailed()) {
+				dbiBot.getLog().info("FAILEDDDDDDDDD");
+				currentGoal.setFailed(false);
+				currentGoal = null;
+			}
+			else {
+				if(currentGoal.hasFinished()) {
+					dbiBot.getLog().info("FINISHEDDDDDD");
+					currentGoal.setFinished(false);
+					currentGoal = null;
+				}
+			}
 		}
+		String option = "";
+		if(currentGoal == null) {
+			option = Options();
+			currentGoal = intention(option);
+			currentGoal.perform();
+		}
+		else 
+		{
+			currentGoal.perform();
+		}
+
+
+
+
 	}
+
+	public Goal getCurrentGoal() {
+		return currentGoal;
+	}
+
+
 }

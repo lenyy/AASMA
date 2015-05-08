@@ -1,7 +1,6 @@
 package tecnico.ulisboa.pt.AASMA_DBI;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
-import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 
 public class GetEnemyFlag extends Goal {
 
@@ -14,27 +13,23 @@ public class GetEnemyFlag extends Goal {
 	public void perform() {
 
 		if (bot.getEnemyFlag() != null) {
-			UnrealId holderId = bot.getEnemyFlag().getHolder();
 
-			if (bot.getInfo().getId().equals(holderId)) {
-				bot.goTo(bot.getOurFlagBase());
-				bot.getLog().info("goTo ourFlagBase");
+			if (bot.getCTF().isEnemyFlagHome()) {
+				bot.getLog().info("goTo enemyFlagBase, flag is at enemy base");
+				bot.goTo(bot.getEnemyFlagBase());
 			} else {
-				if (bot.getCTF().isEnemyFlagHome()) {
-					bot.getLog().info("goTo enemyFlagBase, flag is at enemy base");
-					bot.goTo(bot.getEnemyFlagBase());
+				Location target = bot.getEnemyFlag().getLocation();
+				if (target == null) {
+					target = bot.getEnemyFlagBase().getLocation();
+					bot.getLog().info("goTo enemyFlagBase");
 				} else {
-					Location target = bot.getEnemyFlag().getLocation();
-					if (target == null) {
-						target = bot.getEnemyFlagBase().getLocation();
-						bot.getLog().info("goTo enemyFlagBase");
-					} else {
-						bot.getLog().info("goTo enemyEnemyFlag");
-					}
-	
-					bot.goTo(target);
+					bot.getLog().info("goTo enemyEnemyFlag");
+					setFinished(true);
 				}
+
+				bot.goTo(target);
 			}
+
 		} else {
 			bot.getLog().info("goTo enemyFlagBase null");
 			bot.goTo(bot.getEnemyFlagBase());
@@ -42,25 +37,15 @@ public class GetEnemyFlag extends Goal {
 		bot.updateFight();
 	}
 
-	@Override
-	public double getPriority() {
-
-		if (bot.getEnemyFlag() != null &&
-				bot.getInfo().getId().equals(bot.getEnemyFlag().getHolder())) {
-			return 50d;
-		} else {
-			return 10d;
-		}
-	}
 
 	@Override
 	public boolean hasFailed() {
-		return false;
+		return this.failed;
 	}
 
 	@Override
 	public boolean hasFinished() {
-		return false;
+		return this.finished;
 	}
 
 	@Override

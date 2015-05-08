@@ -6,7 +6,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 
 public class GetOurFlag extends Goal {
 
-	private static final double CAPTURE_SUPPORT_DISTANCE = 200;
+
 	protected Player enemy = null;
 	Location flagLocation;
 
@@ -18,7 +18,7 @@ public class GetOurFlag extends Goal {
 	public void perform() {
 
 		UnrealId holderId = null;
-		
+
 		if (bot.getOurFlag() != null) {
 
 			if (bot.getOurFlag().getLocation() != null) {
@@ -42,57 +42,31 @@ public class GetOurFlag extends Goal {
 					}
 				} else {
 					bot.goTo(flagLocation);
+					if ( bot.getCTF().getOurFlag().getState().equalsIgnoreCase("home")) {
+							setFinished(true);
+					}
 				}
 			} else {
-				bot.goTo(bot.getEnemyFlagBase());
+				setFinished(true);
 			}
+		}
+		else
+		{
+			setFailed(true);
 		}
 
 		bot.updateFight();
 	}
 
-	@Override
-	public double getPriority() {
-		if (bot.getOurFlag() == null
-				|| bot.getOurFlag().getState().equalsIgnoreCase("home"))
-			return 0d;
-
-		if (bot.getEnemyFlag() != null) {
-			UnrealId holderId = bot.getEnemyFlag().getHolder();
-
-			if (holderId != null) {
-				Player holder = bot.getPlayers().getFriends().get(holderId);
-
-				if (bot.getPlayers().getFriends().size() > 1) {
-					if (holderId.equals(bot.getInfo().getId())
-							||
-							holder.getLocation().getDistance(
-									bot.getInfo().getLocation())
-							< CAPTURE_SUPPORT_DISTANCE) {
-						return 0d;
-					}
-				} else {
-					return 55d;
-				}
-			} else {
-				if (bot.getPlayers().getFriends().size() > 1)
-					return 0d;
-				else {
-					return 55d;
-				}
-			}
-		}
-		return 20d;
-	}
 
 	@Override
 	public boolean hasFailed() {
-		return false;
+		return this.failed;
 	}
 
 	@Override
 	public boolean hasFinished() {
-		return false;
+		return this.finished;
 	}
 
 	@Override

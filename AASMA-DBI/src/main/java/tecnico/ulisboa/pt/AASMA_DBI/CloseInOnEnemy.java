@@ -26,16 +26,6 @@ public class CloseInOnEnemy extends Goal {
 
 	}
 
-	@Override
-	public double getPriority() {
-		Player player = bot.getPlayers().getNearestVisibleEnemy();
-
-		if (player == null)
-			return 0;
-
-		double distance = bot.getInfo().getDistance(player) / 50d;
-		return 10d - distance;
-	}
 
 	@Override
 	public boolean hasFailed() {
@@ -44,7 +34,7 @@ public class CloseInOnEnemy extends Goal {
 
 	@Override
 	public boolean hasFinished() {
-		return false;
+		return this.finished;
 	}
 
 	@Override

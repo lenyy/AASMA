@@ -13,13 +13,15 @@ public class GetItems extends Goal {
 	public GetItems(DBIBot bot) {
 		super(bot);
 		item = null;
+		itemsToRunAround = new LinkedList<Item>(bot.getItems()
+				.getVisibleItems()
+				.values());
 	}
 
 	@Override
 	public void perform() {
 
 		boolean atLocation = false;
-
 		if (item != null) {
 			atLocation = bot.getInfo().atLocation(item);
 			if (atLocation) {
@@ -46,32 +48,26 @@ public class GetItems extends Goal {
 			} else {
 				bot.getLog().severe("Taboo clear");
 				bot.getTaboo().clear();
+				setFailed(true);
 			}
 		} else {
 			bot.getLog().severe("Item is ok");
 			bot.goTo(item);
+			setFinished(true);
 		}
 
 		bot.updateFight();
 	}
 
-	@Override
-	public double getPriority() {
-		itemsToRunAround = new LinkedList<Item>(bot.getItems()
-				.getVisibleItems()
-				.values());
-
-		return 8 + bot.getItems().getVisibleItems().size();
-	}
 
 	@Override
 	public boolean hasFailed() {
-		return false;
+		return this.failed;
 	}
 
 	@Override
 	public boolean hasFinished() {
-		return false;
+		return this.finished;
 	}
 
 	@Override

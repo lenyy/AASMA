@@ -11,9 +11,6 @@ import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.agent.module.utils.TabooSet;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.UT2004PathAutoFixer;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.stuckdetector.UT2004DistanceStuckDetector;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.stuckdetector.UT2004PositionStuckDetector;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.stuckdetector.UT2004TimeStuckDetector;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.bot.params.UT2004BotParameters;
@@ -34,13 +31,7 @@ import cz.cuni.amis.utils.Heatup;
 import cz.cuni.amis.utils.exception.PogamutException;
 import cz.cuni.amis.utils.flag.FlagListener;
 
-/**
- * Example of Simple Pogamut bot, that randomly walks around the map searching
- * for preys shooting at everything that is in its way.
- * 
- * @author Rudolf Kadlec aka ik
- * @author Jimmy
- */
+
 @AgentScoped
 public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 
@@ -162,6 +153,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 					}
 				});
 
+	
 		// DEFINE WEAPON PREFERENCES
 		weaponPrefs.addGeneralPref(UT2004ItemType.MINIGUN, false);
 		weaponPrefs.addGeneralPref(UT2004ItemType.MINIGUN, true);
@@ -175,7 +167,14 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		weaponPrefs.addGeneralPref(UT2004ItemType.FLAK_CANNON, true);
 		weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, true);
 
-		bdiArchitecture = new BDIArchitecture(this);
+		bdiArchitecture = new BDIArchitecture(bot,this);
+		
+		bdiArchitecture.addGoal(new GetEnemyFlag(this),"GET ENEMY FLAG");
+		bdiArchitecture.addGoal(new CloseInOnEnemy(this),"CloseOnEnemy");
+		bdiArchitecture.addGoal(new GetHealth(this),"GET HEALTH");
+		bdiArchitecture.addGoal(new GetOurFlag(this),"GET OUR FLAG");
+		bdiArchitecture.addGoal(getItemsGoal = new GetItems(this),"GET ITEMS");
+		bdiArchitecture.addGoal(new GoToOurBase(this), "GO HOME");
 
 		
 	}
@@ -301,10 +300,15 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		if (enemy != null && enemy.isVisible())
 			shoot.shoot(weaponPrefs, enemy);
 		else {
-			shoot.stopShoot();
+			shoot.stopShooting();
 			enemy = null;
 		}
 	}
+	
+	
+	
+	
+
 
 
 	/**
@@ -399,11 +403,14 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	// //////////////////////////////////////////
 
 	public static void main(String args[]) throws PogamutException {
+		
+		
 		// starts 2 or 4 CTFBots at once
 		// note that this is the most easy way to get a bunch of bots running at the same time
-		new UT2004BotRunner<UT2004Bot, UT2004BotParameters>(DBIBot.class, "CTFBot").setMain(true)
+		
+		new UT2004BotRunner<UT2004Bot, UT2004BotParameters>(DBIBot.class, "DBIBot").setMain(true)
 			.startAgents(
-				new DBIBotParams().setBotSkin("HumanMaleA.MercMaleC")       .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("DBIBot"))
+				new DBIBotParams().setBotSkin("HumanMaleA.MercMaleC")       .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 1"))
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
 				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
