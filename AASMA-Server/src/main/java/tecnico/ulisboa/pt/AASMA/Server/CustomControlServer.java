@@ -160,9 +160,9 @@ public class CustomControlServer extends UT2004Server implements IUT2004Server {
         cts.init();
         
         cts.setGameMap(cts.magma);
+
    
         cts.stop();
-       
-   
+
     }
 }
