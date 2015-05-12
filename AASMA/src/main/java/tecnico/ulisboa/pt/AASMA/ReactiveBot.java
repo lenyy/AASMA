@@ -207,8 +207,8 @@ public class ReactiveBot extends UT2004BotModuleController {
 	@Override
 	public void botInitialized(GameInfo info, ConfigChange currentConfig, InitedMessage init) {   	
 		// initialize rays for raycasting
-		final int rayLength = (int) (UnrealUtils.CHARACTER_COLLISION_RADIUS * 10);
-                final int rayLengthFloor = (int) (UnrealUtils.CHARACTER_COLLISION_RADIUS * 7);
+		final int rayLength = (int) (UnrealUtils.CHARACTER_COLLISION_RADIUS * 3);
+                final int rayLengthFloor = (int) (UnrealUtils.CHARACTER_COLLISION_RADIUS * 10);
 		// settings for the rays
 		boolean fastTrace = true;        // perform only fast trace == we just need true/false information
 		boolean floorCorrection = false; // provide floor-angle correction for the ray (when the bot is running on the skewed floor, the ray gets rotated to match the skew)
@@ -226,11 +226,11 @@ public class ReactiveBot extends UT2004BotModuleController {
 		raycasting.createRay(LEFT90,  new Vector3d(0, -1, 0), rayLength, fastTrace, floorCorrection, traceActor);
 		raycasting.createRay(RIGHT90, new Vector3d(0, 1, 0), rayLength, fastTrace, floorCorrection, traceActor);
                 
-                raycasting.createRay(LEFT_FLOOR45,  new Vector3d(2, -1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
-                raycasting.createRay(FRONT_FLOOR,   new Vector3d(2, 0, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
-                raycasting.createRay(RIGHT_FLOOR45, new Vector3d(2, 1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
-                raycasting.createRay(LEFT_FLOOR90,  new Vector3d(0, -1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
-		raycasting.createRay(RIGHT_FLOOR90, new Vector3d(0, 1, -1), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+                raycasting.createRay(LEFT_FLOOR45,  new Vector3d(1, -1, -0.6), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+                raycasting.createRay(FRONT_FLOOR,   new Vector3d(1, 0, -0.6), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+                raycasting.createRay(RIGHT_FLOOR45, new Vector3d(1, 1, -0.6), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+                raycasting.createRay(LEFT_FLOOR90,  new Vector3d(0, -1, -0.6), rayLengthFloor, fastTrace, floorCorrection, traceActor);
+		raycasting.createRay(RIGHT_FLOOR90, new Vector3d(0, 1, -0.6), rayLengthFloor, fastTrace, floorCorrection, traceActor);
 
 
 		// register listener called when all rays are set up in the UT engine
