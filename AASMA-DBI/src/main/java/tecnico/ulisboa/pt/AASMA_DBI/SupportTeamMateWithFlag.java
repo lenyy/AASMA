@@ -4,8 +4,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 
 public class SupportTeamMateWithFlag extends Goal {
 
-	protected boolean runningToPlayer = false;
-
+	
 	public SupportTeamMateWithFlag(DBIBot bot) {
 		super(bot);
 	}
@@ -15,18 +14,23 @@ public class SupportTeamMateWithFlag extends Goal {
 
 		bot.updateFight();
 		
-		Player enemy = null;
+		Player friend = null;
+		
+		if(bot.getCTF().isEnemyFlagHome())
+			setFailed(true);
 		
 		if(bot.getFriendWithFlag() != null)
-			enemy = bot.getPlayers().getPlayer(bot.getFriendWithFlag());
+			friend = bot.getPlayers().getPlayer(bot.getFriendWithFlag());
+		else 
+			setFinished(true);
 		
-		int decentDistance = Math.round(bot.getRandom().nextFloat() * 250) + 200;
-		if (enemy != null && bot.getInfo().getDistance(enemy) > decentDistance
-				&& !runningToPlayer) {
+		if (friend != null) {
 
-			bot.goTo(enemy);
-			runningToPlayer = true;
+			bot.getLog().info("Getting Close to Friend");
+			bot.goTo(friend);
 		}
+		
+		bot.getLog().info("Suporting Team Mate");
 		
 		bot.updateFight();
 
@@ -35,13 +39,12 @@ public class SupportTeamMateWithFlag extends Goal {
 
 	@Override
 	public boolean hasFailed() {
-		runningToPlayer = false;
 		return this.failed;
 	}
 
 	@Override
 	public boolean hasFinished() {
-		runningToPlayer = false;
+	
 		return this.finished;
 	}
 

@@ -34,7 +34,7 @@ public class BDIArchitecture {
 
 		if(dbiBot.getEnemyFlag() != null) {
 			UnrealId holderId = dbiBot.getEnemyFlag().getHolder();
-			
+
 			if (dbiBot.getInfo().getId().equals(holderId))
 			{
 				result = "GO HOME";
@@ -42,27 +42,35 @@ public class BDIArchitecture {
 			}			
 			else
 			{
-				if( !dbiBot.getOurFlag().getState().equalsIgnoreCase("home")) {
+				if(!dbiBot.getOurFlag().getState().equalsIgnoreCase("home")){
 					result = "GET OUR FLAG";
 					dbiBot.getLog().info("GET OUR FLAG");
 				}
 				else {
-					if(dbiBot.getCTF().isEnemyFlagHome() && dbiBot.getCTF().isOurFlagHome())
-					{
-						result = "GET ENEMY FLAG";
-						dbiBot.getLog().info("GET ENEMY FLAG");
+					if(dbiBot.getFriendWithFlag() != null && !dbiBot.getEnemyFlag().getState().equalsIgnoreCase("home")) {
+						result = "SUPPORT TEAM MATE WITH FLAG";
+						dbiBot.getLog().info("SUPPORT TEAM MATE WITH FLAG");
 					}
-					else
-					{
-						if(dbiBot.getInfo().getHealth() < 20 && dbiBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+					else {
+
+
+						if(dbiBot.getCTF().isEnemyFlagHome() && dbiBot.getCTF().isOurFlagHome())
 						{
-							result = "GET HEALTH";
-							dbiBot.getLog().info("GET HEALTH");
+							result = "GET ENEMY FLAG";
+							dbiBot.getLog().info("GET ENEMY FLAG");
 						}
 						else
 						{
-							result = "GET ITEMS";
-							dbiBot.getLog().info("GET ITEMS");
+							if(dbiBot.getInfo().getHealth() < 20 && dbiBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+							{
+								result = "GET HEALTH";
+								dbiBot.getLog().info("GET HEALTH");
+							}
+							else
+							{
+								result = "GET ITEMS";
+								dbiBot.getLog().info("GET ITEMS");
+							}
 						}
 					}
 				}

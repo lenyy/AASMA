@@ -16,7 +16,8 @@ public class GoToOurBase extends Goal {
 			if (bot.getInfo().getId().equals(holderId)) {
 				bot.goTo(bot.getOurFlagBase());
 				bot.getLog().info("goTo ourFlagBase");
-				setFinished(true);
+				if(bot.getInfo().isAtLocation(bot.getOurFlagBase()))
+					setFinished(true);
 				
 			}
 		}

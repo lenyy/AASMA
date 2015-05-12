@@ -14,14 +14,18 @@ public class GetEnemyFlag extends Goal {
 
 		if (bot.getEnemyFlag() != null) {
 
+			if (bot.getFriendWithFlag() != null) {
+				this.failed = true;
+				return;
+			}
+			
 			if (bot.getCTF().isEnemyFlagHome()) {
 				bot.getLog().info("goTo enemyFlagBase, flag is at enemy base");
 				bot.goTo(bot.getEnemyFlagBase());
 			} else {
 				Location target = bot.getEnemyFlag().getLocation();
 				if (target == null) {
-					target = bot.getEnemyFlagBase().getLocation();
-					bot.getLog().info("goTo enemyFlagBase");
+					setFailed(true);
 				} else {
 					bot.getLog().info("goTo enemyEnemyFlag");
 					}
