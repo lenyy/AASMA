@@ -61,9 +61,6 @@ public class GetHealth extends Goal {
 		return this.finished;
 	}
 
-	@Override
-	public void abandon() {
-		return;
-	}
+
 
 }

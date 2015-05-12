@@ -28,6 +28,6 @@ public abstract class Goal{
 
 	abstract boolean hasFinished();
 
-	abstract void abandon();
+
 	
 }

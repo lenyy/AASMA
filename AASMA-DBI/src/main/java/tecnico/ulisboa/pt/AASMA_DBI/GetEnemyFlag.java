@@ -24,10 +24,13 @@ public class GetEnemyFlag extends Goal {
 					bot.getLog().info("goTo enemyFlagBase");
 				} else {
 					bot.getLog().info("goTo enemyEnemyFlag");
-					setFinished(true);
-				}
+					}
 
 				bot.goTo(target);
+				if(bot.getInfo().getId().equals(bot.getEnemyFlag().getHolder())) {
+					setFinished(true);
+					bot.gotEnemyFlag();
+				}
 			}
 
 		} else {
@@ -48,7 +51,5 @@ public class GetEnemyFlag extends Goal {
 		return this.finished;
 	}
 
-	@Override
-	public void abandon() {
-	}
+	
 }

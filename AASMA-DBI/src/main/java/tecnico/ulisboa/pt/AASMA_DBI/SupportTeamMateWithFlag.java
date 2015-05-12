@@ -2,11 +2,11 @@ package tecnico.ulisboa.pt.AASMA_DBI;
 
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 
-public class CloseInOnEnemy extends Goal {
+public class SupportTeamMateWithFlag extends Goal {
 
 	protected boolean runningToPlayer = false;
 
-	public CloseInOnEnemy(DBIBot bot) {
+	public SupportTeamMateWithFlag(DBIBot bot) {
 		super(bot);
 	}
 
@@ -14,8 +14,12 @@ public class CloseInOnEnemy extends Goal {
 	public void perform() {
 
 		bot.updateFight();
-
-		Player enemy = bot.getEnemy();
+		
+		Player enemy = null;
+		
+		if(bot.getFriendWithFlag() != null)
+			enemy = bot.getPlayers().getPlayer(bot.getFriendWithFlag());
+		
 		int decentDistance = Math.round(bot.getRandom().nextFloat() * 250) + 200;
 		if (enemy != null && bot.getInfo().getDistance(enemy) > decentDistance
 				&& !runningToPlayer) {
@@ -23,25 +27,24 @@ public class CloseInOnEnemy extends Goal {
 			bot.goTo(enemy);
 			runningToPlayer = true;
 		}
+		
+		bot.updateFight();
 
 	}
 
 
 	@Override
 	public boolean hasFailed() {
-		return false;
+		runningToPlayer = false;
+		return this.failed;
 	}
 
 	@Override
 	public boolean hasFinished() {
+		runningToPlayer = false;
 		return this.finished;
 	}
 
-	@Override
-	public void abandon() {
-		bot.getNavigation().stopNavigation();
-		runningToPlayer = false;
-		return;
-	}
+	
 
 }

@@ -62,21 +62,16 @@ public class GetItems extends Goal {
 
 	@Override
 	public boolean hasFailed() {
+		item = null;
 		return this.failed;
 	}
 
 	@Override
 	public boolean hasFinished() {
+		item = null;
 		return this.finished;
 	}
-
-	@Override
-	public void abandon() {
-		bot.getLog().info("abandoning GetItems");
-		item = null;
-		return;
-	}
-
+	
 	public Item getItem() {
 		return item;
 	}

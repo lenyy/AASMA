@@ -20,6 +20,7 @@ public class GoToOurBase extends Goal {
 				
 			}
 		}
+		bot.updateFight();
 	}
 
 	@Override
@@ -32,10 +33,5 @@ public class GoToOurBase extends Goal {
 		return this.finished;
 	}
 
-	@Override
-	void abandon() {
 	
-
-	}
-
 }

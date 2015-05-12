@@ -69,8 +69,5 @@ public class GetOurFlag extends Goal {
 		return this.finished;
 	}
 
-	@Override
-	public void abandon() {
-		return;
-	}
+	
 }

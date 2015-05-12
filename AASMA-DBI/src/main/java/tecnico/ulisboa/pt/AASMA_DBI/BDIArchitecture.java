@@ -34,12 +34,12 @@ public class BDIArchitecture {
 
 		if(dbiBot.getEnemyFlag() != null) {
 			UnrealId holderId = dbiBot.getEnemyFlag().getHolder();
-
+			
 			if (dbiBot.getInfo().getId().equals(holderId))
 			{
 				result = "GO HOME";
 				dbiBot.getLog().info("GO HOME");
-			}
+			}			
 			else
 			{
 				if( !dbiBot.getOurFlag().getState().equalsIgnoreCase("home")) {
