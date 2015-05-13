@@ -2,10 +2,6 @@ package tecnico.ulisboa.pt.AASMA_DBI;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
-
-import tecnico.ulisboa.pt.AASMA_DBI.Comunication.CommunicatingFirstSpawn;
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.DroppedEnemyFlag;
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.GotFlag;
 import cz.cuni.amis.introspection.java.JProp;
@@ -86,9 +82,6 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	protected Location pathTarget;
 
 
-	/** List of Team Mates ID's */
-	protected List<UnrealId> friends;
-
 	protected UnrealId friendWithFlag = null;
 
 	/**
@@ -120,22 +113,19 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	}
 
 
-	@EventListener(eventClass = CommunicatingFirstSpawn.class)
-	public void getTeamIds(CommunicatingFirstSpawn event) {
-		friends.add(event.getBotId());
-	}
+
 
 	@EventListener(eventClass = GotFlag.class)
 	public void gotEnemyFlag(GotFlag event) {
 		this.friendWithFlag = event.getBotId();
 	}
-	
+
 	@EventListener(eventClass = DroppedEnemyFlag.class)
 	public void DroppedEnemyFlag(DroppedEnemyFlag event) {
 		this.friendWithFlag = null;
 	}
-	
-	
+
+
 	/**
 	 * Used internally to maintain the information about the bot we're currently
 	 * hunting, i.e., should be firing at.
@@ -163,7 +153,6 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 
 		autoFixer = new UT2004PathAutoFixer(bot, navigation.getPathExecutor(), fwMap, aStar, navBuilder); // auto-removes wrong navigation links between navpoints
 
-		friends = new ArrayList<UnrealId>();
 
 		// listeners
 		navigation.getPathExecutor().getState().addListener(
@@ -235,8 +224,6 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	@Override
 	public void botFirstSpawn(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init, Self self) {
 		PogamutJVMComm.getInstance().registerAgent(bot, self.getTeam());
-		PogamutJVMComm.getInstance().sendToOthers(new CommunicatingFirstSpawn(self.getBotId()), self.getTeam(), bot);
-		PogamutJVMComm.getInstance().sendToOthers(new GotFlag(self.getBotId()), self.getTeam(), bot);
 	}
 
 	@Override
@@ -343,11 +330,6 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	}
 
 
-
-
-
-
-
 	/**
 	 * Resets the state of the bot.
 	 */
@@ -355,6 +337,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		notMoving = 0;
 		enemy = null;
 		navigation.stopNavigation();
+		friendWithFlag = null;
 	}
 
 	/**
@@ -415,15 +398,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		bdiArchitecture.BDIPlanner();
 
 
-		log.info("OUR FLAG:                      " + ctf.getOurFlag());
-		log.info("OUR BASE:                      " + ctf.getOurBase());
-		log.info("CAN OUR TEAM POSSIBLY SCORE:   " + ctf.canOurTeamPossiblyScore());
-		log.info("CAN OUR TEAM SCORE:            " + ctf.canOurTeamScore());
-		log.info("CAN BOT SCORE:                 " + ctf.canBotScore());
-		log.info("ENEMY FLAG:                    " + ctf.getEnemyFlag());
-		log.info("ENEMY BASE:                    " + ctf.getEnemyBase());
-		log.info("CAN ENEMY TEAM POSSIBLY SCORE: " + ctf.canEnemyTeamPossiblyScore());
-		log.info("CAN ENEMY TEAM SCORE:          " + ctf.canEnemyTeamScore());
+
 	}
 
 	public TabooSet<Item> getTaboo() {
@@ -450,8 +425,8 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		}
 		reset();		
 	}
-	
-	
+
+
 	public void teamScore(TeamScoreUpdate event) {
 		this.friendWithFlag = null;
 	}
@@ -471,9 +446,9 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
 				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
-				/*,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
+				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 3"))
-				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
+				/*,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 4"))
 				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 5"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 5"))*/

@@ -21,9 +21,9 @@ public class GetOurFlag extends Goal {
 
 		if (bot.getOurFlag() != null) {
 
-			if (bot.getOurFlag().getLocation() != null) {
-				flagLocation = bot.getOurFlag().getLocation();
-			}
+			holderId = bot.getOurFlag().getHolder();
+					
+			flagLocation = bot.getOurFlag().getLocation();
 
 			if (flagLocation != null) {
 
@@ -34,20 +34,26 @@ public class GetOurFlag extends Goal {
 								bot.getInfo().getLocation(),
 								bot.getInfo().getDistance(flagLocation)));
 				if (enemy != null) {
+					bot.getLog().info("Getting Closer to Enemy carring my flag");
 					bot.goTo(enemy);
 
 					if (enemy.isVisible()) {
 						bot.updateFight(enemy);
 						return;
 					}
-				} else {
+				} 
+				else 
+				{
+					bot.getLog().info("Getting Closer to Flag");
 					bot.goTo(flagLocation);
-					if ( bot.getCTF().getOurFlag().getState().equalsIgnoreCase("home")) {
-							setFinished(true);
+					if (bot.getCTF().getOurFlag().getState().equalsIgnoreCase("home"))
+					{
+						setFinished(true);
 					}
 				}
 			} else {
-				setFinished(true);
+				bot.getLog().info("Cannot See Enemy Player with my flag, going to Enemy Base");
+				bot.goTo(bot.getEnemyFlagBase().getLocation());
 			}
 		}
 		else
@@ -69,5 +75,5 @@ public class GetOurFlag extends Goal {
 		return this.finished;
 	}
 
-	
+
 }

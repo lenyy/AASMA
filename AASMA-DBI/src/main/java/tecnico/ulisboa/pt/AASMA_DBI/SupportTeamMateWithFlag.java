@@ -16,21 +16,33 @@ public class SupportTeamMateWithFlag extends Goal {
 		
 		Player friend = null;
 		
-		if(bot.getCTF().isEnemyFlagHome())
+		if (!bot.getOurFlag().getState().equalsIgnoreCase("home")){
 			setFailed(true);
+			return;
+		}
 		
+		if(bot.getCTF().isEnemyFlagHome()) {
+			setFailed(true);
+			return;
+		}
 		if(bot.getFriendWithFlag() != null)
 			friend = bot.getPlayers().getPlayer(bot.getFriendWithFlag());
 		else 
+		{
 			setFinished(true);
-		
+			return;
+		}
 		if (friend != null) {
 
-			bot.getLog().info("Getting Close to Friend");
-			bot.goTo(friend);
+			bot.getLog().info("Getting Close to Friend " + friend.getName());	
+			bot.goTo(friend.getLocation());
+		}
+		else {
+			
+			bot.getLog().info("Suporting Team Mate, Going to base");
+			bot.goTo(bot.getOurFlagBase());
 		}
 		
-		bot.getLog().info("Suporting Team Mate");
 		
 		bot.updateFight();
 

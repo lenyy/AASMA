@@ -13,9 +13,8 @@ public class GetEnemyFlag extends Goal {
 	public void perform() {
 
 		if (bot.getEnemyFlag() != null) {
-
-			if (bot.getFriendWithFlag() != null) {
-				this.failed = true;
+			if(!bot.getOurFlag().getState().equalsIgnoreCase("home")) {
+				setFailed(true);
 				return;
 			}
 			
@@ -25,7 +24,9 @@ public class GetEnemyFlag extends Goal {
 			} else {
 				Location target = bot.getEnemyFlag().getLocation();
 				if (target == null) {
+					bot.getLog().info("Failed cannot see the flag");
 					setFailed(true);
+					return;
 				} else {
 					bot.getLog().info("goTo enemyEnemyFlag");
 					}
