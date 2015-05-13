@@ -5,7 +5,7 @@ import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 public class GetEnemyFlag extends Goal {
 
 
-	public GetEnemyFlag(DBIBot bot) {
+	public GetEnemyFlag(BDIBot bot) {
 		super(bot);
 	}
 
@@ -13,11 +13,7 @@ public class GetEnemyFlag extends Goal {
 	public void perform() {
 
 		if (bot.getEnemyFlag() != null) {
-			if(!bot.getOurFlag().getState().equalsIgnoreCase("home")) {
-				setFailed(true);
-				return;
-			}
-			
+				
 			if (bot.getCTF().isEnemyFlagHome()) {
 				bot.getLog().info("goTo enemyFlagBase, flag is at enemy base");
 				bot.goTo(bot.getEnemyFlagBase());
@@ -42,7 +38,6 @@ public class GetEnemyFlag extends Goal {
 			bot.getLog().info("goTo enemyFlagBase null");
 			bot.goTo(bot.getEnemyFlagBase());
 		}
-		bot.updateFight();
 	}
 
 
@@ -56,5 +51,8 @@ public class GetEnemyFlag extends Goal {
 		return this.finished;
 	}
 
-	
+	@Override
+	public String toString() {
+		return "GOAL ------> Get Enemy Flag";
+	}
 }

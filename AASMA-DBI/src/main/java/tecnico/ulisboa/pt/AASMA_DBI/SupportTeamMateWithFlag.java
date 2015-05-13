@@ -5,27 +5,16 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 public class SupportTeamMateWithFlag extends Goal {
 
 	
-	public SupportTeamMateWithFlag(DBIBot bot) {
+	public SupportTeamMateWithFlag(BDIBot bot) {
 		super(bot);
 	}
 
 	@Override
 	public void perform() {
-
-		bot.updateFight();
 		
 		Player friend = null;
-		
-		if (!bot.getOurFlag().getState().equalsIgnoreCase("home")){
-			setFailed(true);
-			return;
-		}
-		
-		if(bot.getCTF().isEnemyFlagHome()) {
-			setFailed(true);
-			return;
-		}
-		if(bot.getFriendWithFlag() != null)
+	
+		if(bot.getFriendWithFlag() != null || bot.getCTF().isEnemyFlagHeld())
 			friend = bot.getPlayers().getPlayer(bot.getFriendWithFlag());
 		else 
 		{
@@ -39,12 +28,10 @@ public class SupportTeamMateWithFlag extends Goal {
 		}
 		else {
 			
-			bot.getLog().info("Suporting Team Mate, Going to base");
+			bot.getLog().info("Suporting Team Mate, Cannot see Team Mate. Going to base to wait for is arrival");
 			bot.goTo(bot.getOurFlagBase());
 		}
 		
-		
-		bot.updateFight();
 
 	}
 
@@ -60,6 +47,10 @@ public class SupportTeamMateWithFlag extends Goal {
 		return this.finished;
 	}
 
+	@Override
+	public String toString() {
+		return "GOAL ------> Support Team MAte With Flag";
+	}
 	
 
 }

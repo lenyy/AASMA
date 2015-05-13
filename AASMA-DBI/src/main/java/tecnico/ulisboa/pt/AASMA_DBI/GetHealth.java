@@ -9,14 +9,13 @@ public class GetHealth extends Goal {
 
 	protected Item health = null;
 
-	public GetHealth(DBIBot bot) {
+	public GetHealth(BDIBot bot) {
 		super(bot);
 	}
 
 	@Override
 	public void perform() {
 
-		bot.updateFight();
 
 		if (health == null) {
 			Set<Item> healths = bot.getTaboo().filter(
@@ -61,6 +60,9 @@ public class GetHealth extends Goal {
 		return this.finished;
 	}
 
-
+	@Override
+	public String toString() {
+		return "GOAL ------> Get Health";
+	}
 
 }

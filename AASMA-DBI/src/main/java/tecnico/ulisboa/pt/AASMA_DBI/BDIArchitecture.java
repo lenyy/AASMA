@@ -10,11 +10,16 @@ public class BDIArchitecture {
 	protected final HashMap<String,Goal> goals = new HashMap<String,Goal>();
 	protected Goal currentGoal = null;
 	protected UT2004Bot bot;
-	protected DBIBot dbiBot;
+	protected BDIBot bdiBot;
+	protected String flagInfoTeam;
+	protected String flagInfoEnemy;
+	protected boolean sawEnemy;
 
-	public BDIArchitecture(UT2004Bot bot, DBIBot dbiBot) {
+	public BDIArchitecture(UT2004Bot bot, BDIBot bdiBot) {
 		this.bot = bot;
-		this.dbiBot = dbiBot;
+		this.bdiBot = bdiBot;
+		this.flagInfoEnemy = "home";
+		this.flagInfoTeam = "home";
 	}
 
 
@@ -32,44 +37,50 @@ public class BDIArchitecture {
 	{
 		String result = "";
 
-		if(dbiBot.getEnemyFlag() != null) {
-			UnrealId holderId = dbiBot.getEnemyFlag().getHolder();
+		if(bdiBot.getEnemyFlag() != null) {
+			UnrealId holderId = bdiBot.getEnemyFlag().getHolder();
 
-			if (dbiBot.getInfo().getId().equals(holderId))
+			if(bdiBot.getPlayers().getNearestVisibleEnemy() != null 
+					&& bdiBot.getInfo().getCurrentAmmo() != 0 
+					&& bdiBot.getInfo().getCurrentSecondaryAmmo() != 0) 
 			{
-				result = "GO HOME";
-				dbiBot.getLog().info("GO HOME");
-			}			
+				result = "SHOOT";
+			}
 			else
 			{
-				if(!dbiBot.getOurFlag().getState().equalsIgnoreCase("home")){
-					result = "GET OUR FLAG";
-					dbiBot.getLog().info("GET OUR FLAG");
-				}
-				else {
-					if(dbiBot.getFriendWithFlag() != null && !dbiBot.getEnemyFlag().getState().equalsIgnoreCase("home")) {
-						result = "SUPPORT TEAM MATE WITH FLAG";
-						dbiBot.getLog().info("SUPPORT TEAM MATE WITH FLAG");
+				if (bdiBot.getInfo().getId().equals(holderId))
+				{
+					result = "GO HOME";
+				}			
+				else
+				{
+					if(!bdiBot.getCTF().isOurFlagHome()){
+						result = "GET OUR FLAG";				
 					}
 					else {
-
-
-						if(dbiBot.getCTF().isEnemyFlagHome() && dbiBot.getCTF().isOurFlagHome())
-						{
-							result = "GET ENEMY FLAG";
-							dbiBot.getLog().info("GET ENEMY FLAG");
+						if(bdiBot.getCTF().isEnemyFlagHeld()) {
+							result = "SUPPORT TEAM MATE WITH FLAG";	
 						}
-						else
-						{
-							if(dbiBot.getInfo().getHealth() < 20 && dbiBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+						else {
+
+
+
+							if(bdiBot.getCTF().isEnemyFlagHome())
 							{
-								result = "GET HEALTH";
-								dbiBot.getLog().info("GET HEALTH");
+								result = "GET ENEMY FLAG";
 							}
 							else
 							{
-								result = "GET ITEMS";
-								dbiBot.getLog().info("GET ITEMS");
+								if(bdiBot.getInfo().getHealth() < 20 && bdiBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+								{
+									result = "GET HEALTH";
+
+								}
+								else
+								{
+									result = "GET ITEMS";
+
+								}
 							}
 						}
 					}
@@ -79,9 +90,9 @@ public class BDIArchitecture {
 		else
 		{
 			result = "GET ENEMY FLAG";
-			dbiBot.getLog().info("GET ENEMY FLAG 2");
 		}
 
+		bdiBot.getLog().info(result);
 
 		return result;
 	}
@@ -104,13 +115,13 @@ public class BDIArchitecture {
 	public void BDIPlanner() {
 		if(currentGoal != null) {
 			if(currentGoal.hasFailed()) {
-				dbiBot.getLog().info("FAILEDDDDDDDDD");
+				bdiBot.getLog().info("FAILEDDDDDDDDD");
 				currentGoal.setFailed(false);
 				currentGoal = null;
 			}
 			else {
 				if(currentGoal.hasFinished()) {
-					dbiBot.getLog().info("FINISHEDDDDDD");
+					bdiBot.getLog().info("FINISHEDDDDDD");
 					currentGoal.setFinished(false);
 					currentGoal = null;
 				}
@@ -124,16 +135,51 @@ public class BDIArchitecture {
 		}
 		else 
 		{
+
 			currentGoal.perform();
 		}
 
+		bdiBot.getLog().info(currentGoal.toString());
 
-
+		if(shouldReviewIntentions())
+		{
+			bdiBot.getLog().info("REVIEWING INTENTIONSS");
+			option = Options();
+			currentGoal = intention(option);
+		}
 
 	}
 
 	public Goal getCurrentGoal() {
 		return currentGoal;
+	}
+
+
+
+	public boolean shouldReviewIntentions() {
+		boolean result = false;
+
+		if(bdiBot.getPlayers().getNearestVisibleEnemy() != null) {
+			result = true;
+		}
+		else 
+		{
+			if(!this.flagInfoTeam.equalsIgnoreCase(bdiBot.getOurFlag().getState()))
+			{
+				result = true;
+				this.flagInfoTeam = bdiBot.getOurFlag().getState();
+			}
+			else
+			{
+				if(!this.flagInfoEnemy.equalsIgnoreCase(bdiBot.getEnemyFlag().getState())) {
+					result = true;
+					this.flagInfoEnemy = bdiBot.getEnemyFlag().getState();
+				}
+			}
+		}
+
+
+		return result;
 	}
 
 

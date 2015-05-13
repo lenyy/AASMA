@@ -4,7 +4,7 @@ import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 
 public class GoToOurBase extends Goal {
 
-	protected GoToOurBase(DBIBot bot) {
+	protected GoToOurBase(BDIBot bot) {
 		super(bot);
 	}
 
@@ -16,12 +16,22 @@ public class GoToOurBase extends Goal {
 			if (bot.getInfo().getId().equals(holderId)) {
 				bot.goTo(bot.getOurFlagBase());
 				bot.getLog().info("goTo ourFlagBase");
-				if(bot.getInfo().isAtLocation(bot.getOurFlagBase()))
+				if(bot.getInfo().isAtLocation(bot.getOurFlagBase()) 
+						&& bot.getEnemyFlag().getState().equalsIgnoreCase("home"))	
 					setFinished(true);
-				
+
+			}
+			else
+			{
+				bot.getLog().info("I dont have the Enemy Flag, Dropping Goal");
+				setFailed(true);
 			}
 		}
-		bot.updateFight();
+		else
+		{
+			bot.getLog().info("Cannot get Info about Enemy Flag, Dropping Goal");
+			setFailed(true);
+		}
 	}
 
 	@Override
@@ -34,5 +44,9 @@ public class GoToOurBase extends Goal {
 		return this.finished;
 	}
 
+	@Override
+	public String toString() {
+		return "GOAL ------> Go To Our Base";
+	}
 	
 }

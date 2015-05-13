@@ -10,7 +10,7 @@ public class GetItems extends Goal {
 	protected Item item;
 	protected LinkedList<Item> itemsToRunAround;
 
-	public GetItems(DBIBot bot) {
+	public GetItems(BDIBot bot) {
 		super(bot);
 		item = null;
 		itemsToRunAround = new LinkedList<Item>(bot.getItems()
@@ -20,6 +20,7 @@ public class GetItems extends Goal {
 
 	@Override
 	public void perform() {
+		
 
 		boolean atLocation = false;
 		if (item != null) {
@@ -56,7 +57,7 @@ public class GetItems extends Goal {
 			setFinished(true);
 		}
 
-		bot.updateFight();
+
 	}
 
 
@@ -74,5 +75,10 @@ public class GetItems extends Goal {
 	
 	public Item getItem() {
 		return item;
+	}
+	
+	@Override
+	public String toString() {
+		return "GOAL ------> Get Items";
 	}
 }

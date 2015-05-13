@@ -10,7 +10,7 @@ public class GetOurFlag extends Goal {
 	protected Player enemy = null;
 	Location flagLocation;
 
-	public GetOurFlag(DBIBot bot) {
+	public GetOurFlag(BDIBot bot) {
 		super(bot);
 	}
 
@@ -24,9 +24,12 @@ public class GetOurFlag extends Goal {
 			holderId = bot.getOurFlag().getHolder();
 					
 			flagLocation = bot.getOurFlag().getLocation();
+			
+			if(bot.getOurFlagBase().getLocation().equals(flagLocation, 2))
+				flagLocation = null;
 
 			if (flagLocation != null) {
-
+				
 				enemy = bot.getPlayers().getPlayer(holderId);
 
 				bot.getLog().info(
@@ -37,10 +40,6 @@ public class GetOurFlag extends Goal {
 					bot.getLog().info("Getting Closer to Enemy carring my flag");
 					bot.goTo(enemy);
 
-					if (enemy.isVisible()) {
-						bot.updateFight(enemy);
-						return;
-					}
 				} 
 				else 
 				{
@@ -61,7 +60,6 @@ public class GetOurFlag extends Goal {
 			setFailed(true);
 		}
 
-		bot.updateFight();
 	}
 
 
@@ -75,5 +73,8 @@ public class GetOurFlag extends Goal {
 		return this.finished;
 	}
 
-
+	@Override
+	public String toString() {
+		return "GOAL ------> Get Our Flag";
+	}
 }

@@ -2,6 +2,10 @@ package tecnico.ulisboa.pt.AASMA_DBI;
 
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+import tecnico.ulisboa.pt.AASMA_DBI.Comunication.BotReady;
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.DroppedEnemyFlag;
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.GotFlag;
 import cz.cuni.amis.introspection.java.JProp;
@@ -9,9 +13,11 @@ import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
 import cz.cuni.amis.pogamut.base.agent.module.comm.PogamutJVMComm;
 import cz.cuni.amis.pogamut.base.agent.navigation.IPathExecutorState;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
+import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.ObjectClassEventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
+import cz.cuni.amis.pogamut.base3d.worldview.object.event.WorldObjectAppearedEvent;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.agent.module.utils.TabooSet;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.UT2004PathAutoFixer;
@@ -38,40 +44,23 @@ import cz.cuni.amis.utils.flag.FlagListener;
 
 
 @AgentScoped
-public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
+public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 
-	/** boolean switch to activate engage behavior */
-	@JProp
-	public boolean shouldEngage = true;
 
-	/** boolean switch to activate pursue behavior */
-	@JProp
-	public boolean shouldPursue = true;
+	public int players = 4;
 
-	/** boolean switch to activate rearm behavior */
-	@JProp
-	public boolean shouldRearm = true;
+	public List<UnrealId> botsReady;
 
-	/** boolean switch to activate collect items behavior */
-	@JProp
-	public boolean shouldCollectItems = true;
-
-	/** boolean switch to activate collect health behavior */
-	@JProp
-	public boolean shouldCollectHealth = true;
-
-	/** how low the health level should be to start collecting health items */
-	@JProp
-	public int healthLevel = 90;
+	public int worldChannel = 2;
 
 	/**
-	 * how many bot the hunter killed other bots (i.e., bot has fragged them /
+	 * how many enemies the bot killed (i.e., bot has fragged them /
 	 * got point for killing somebody)
 	 */
 	@JProp
 	public int frags = 0;
 
-	/** how many times the hunter died */
+	/** how many times the bot died */
 	@JProp
 	public int deaths = 0;
 
@@ -88,14 +77,18 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	 * Returns parameters of the bot.
 	 * @return
 	 */
-	public DBIBotParams getParams() {
-		if (!(bot.getParams() instanceof DBIBotParams)) return null;
-		return (DBIBotParams)bot.getParams();
+	public BDIBotParams getParams() {
+		if (!(bot.getParams() instanceof BDIBotParams)) return null;
+		return (BDIBotParams)bot.getParams();
 	}
 
 	public Location getPathTarget() {
 		return pathTarget;
 	}
+
+
+
+
 
 	/**
 	 * {@link PlayerKilled} listener that provides "frag" counting + is switches
@@ -113,11 +106,20 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	}
 
 
-
+	@EventListener(eventClass = BotReady.class)
+	public void broadcastId(BotReady event) {
+		if(botsReady.size() + 1 != players) {
+			if(!botsReady.contains(event.getId())){
+				botsReady.add(event.getId());
+			}
+			PogamutJVMComm.getInstance().sendToOthers(new BotReady(info.getId()), worldChannel, bot);
+		}
+	}
 
 	@EventListener(eventClass = GotFlag.class)
 	public void gotEnemyFlag(GotFlag event) {
 		this.friendWithFlag = event.getBotId();
+		log.info("My Friend " + this.getPlayers().getPlayer(friendWithFlag).getName() + " has the enemy flag");
 	}
 
 	@EventListener(eventClass = DroppedEnemyFlag.class)
@@ -153,6 +155,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 
 		autoFixer = new UT2004PathAutoFixer(bot, navigation.getPathExecutor(), fwMap, aStar, navBuilder); // auto-removes wrong navigation links between navpoints
 
+		botsReady = new ArrayList<UnrealId>();
 
 		// listeners
 		navigation.getPathExecutor().getState().addListener(
@@ -199,6 +202,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		bdiArchitecture.addGoal(new GetOurFlag(this),"GET OUR FLAG");
 		bdiArchitecture.addGoal(getItemsGoal = new GetItems(this),"GET ITEMS");
 		bdiArchitecture.addGoal(new GoToOurBase(this), "GO HOME");
+		bdiArchitecture.addGoal(new Shoot(this,weaponPrefs,shoot), "SHOOT");
 
 
 	}
@@ -224,6 +228,8 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	@Override
 	public void botFirstSpawn(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init, Self self) {
 		PogamutJVMComm.getInstance().registerAgent(bot, self.getTeam());
+		PogamutJVMComm.getInstance().registerAgent(bot, worldChannel);
+		PogamutJVMComm.getInstance().sendToOthers(new BotReady(info.getId()), worldChannel, bot);
 	}
 
 	@Override
@@ -267,68 +273,6 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		return true;
 	}
 
-	public boolean holdingOrSupporting() {
-		FlagInfo ourFlag = getOurFlag();
-
-		if (ourFlag == null)
-			return false;
-
-		UnrealId holderId = ourFlag.getHolder();
-
-		if (holderId == null)
-			return false;
-
-		if (info.getId().equals(holderId))
-			return true;
-
-		Player holder = players.getPlayer(holderId);
-
-		if (holder.getTeam() == info.getTeam()
-				&& getInfo().getDistance(holder) < 60d) {
-			return true;
-		}
-
-		return false;
-	}
-
-	public void updateFight() {
-		if (enemy == null || enemy.isVisible())
-			enemy = (Player) getPlayers().getNearestVisibleEnemy();
-
-
-		Player nearest_target = players.getNearestVisibleEnemy();
-
-		if (enemy == null) {
-			enemy = nearest_target;
-		} else {
-			if (nearest_target == enemy) {
-				targetHU.heat();
-			} else if (targetHU.isCool()) {
-				enemy = nearest_target;
-			}
-		}
-
-		shoot();
-	}
-
-	public void updateFight(Player newEnemy) {
-		if (newEnemy == null || !newEnemy.isVisible())
-			newEnemy = (Player) getPlayers().getNearestVisibleEnemy();
-
-		enemy = newEnemy;
-
-		shoot();
-	}
-
-	public void shoot() {
-		if (enemy != null && enemy.isVisible())
-			shoot.shoot(weaponPrefs, enemy);
-		else {
-			shoot.stopShooting();
-			enemy = null;
-		}
-	}
-
 
 	/**
 	 * Resets the state of the bot.
@@ -342,7 +286,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 
 	/**
 	 * Global anti-stuck mechanism. When this counter reaches a certain
-	 * constant, the bot's mind gets a {@link DBIBot#reset()}.
+	 * constant, the bot's mind gets a {@link BDIBot#reset()}.
 	 */
 	protected int notMoving = 0;
 
@@ -395,8 +339,9 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 	 */
 	@Override
 	public void logic() {
-		bdiArchitecture.BDIPlanner();
 
+		if(botsReady.size() + 1 == players)
+			bdiArchitecture.BDIPlanner();	
 
 
 	}
@@ -408,7 +353,7 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 
 	public void gotEnemyFlag() {
 		log.info("GOTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT THEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE FLAAAAAAAAAAAAG");
-		PogamutJVMComm.getInstance().sendToOthers(new GotFlag(bot.getSelf().getBotId()), bot.getSelf().getTeam(), bot);
+		PogamutJVMComm.getInstance().sendToOthers(new GotFlag(info.getId()), bot.getSelf().getTeam(), bot);
 	}
 
 
@@ -440,15 +385,15 @@ public class DBIBot extends UT2004BotModuleController<UT2004Bot> {
 		// starts 2 or 4 CTFBots at once
 		// note that this is the most easy way to get a bunch of bots running at the same time
 
-		new UT2004BotRunner<UT2004Bot, UT2004BotParameters>(DBIBot.class, "DBIBot").setMain(true)
+		new UT2004BotRunner<UT2004Bot, UT2004BotParameters>(BDIBot.class, "DBIBot").setMain(true)
 		.startAgents(
-				new DBIBotParams().setBotSkin("HumanMaleA.MercMaleC")       .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 1"))
-				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
-				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
-				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
-				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
+				new BDIBotParams().setBotSkin("HumanMaleA.MercMaleC")       .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 1"))
+				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
+				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
+				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
+				/*,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 3"))
-				/*,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
+				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 4"))
 				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 5"))				
 				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 5"))*/

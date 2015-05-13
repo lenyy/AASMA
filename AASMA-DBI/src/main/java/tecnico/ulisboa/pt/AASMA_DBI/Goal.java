@@ -2,13 +2,13 @@ package tecnico.ulisboa.pt.AASMA_DBI;
 
 public abstract class Goal{
 
-	protected DBIBot bot;
+	protected BDIBot bot;
 	
 	protected boolean finished;
 	
 	protected boolean failed;
 
-	public Goal(DBIBot bot) {
+	public Goal(BDIBot bot) {
 		this.bot = bot;
 		this.finished = false;
 		this.failed = false;
