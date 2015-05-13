@@ -46,11 +46,21 @@ import cz.cuni.amis.utils.flag.FlagListener;
 @AgentScoped
 public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 
-
+	/**
+	 * Max number of players that need to enter the game so that bot's logic can
+	 * start working
+	 */
 	public int players = 4;
-
+	
+	/**
+	 * List that contains bots id's.
+	 * Used to check if all bots are ready to play 
+	 */
 	public List<UnrealId> botsReady;
 
+	/**
+	 * Channel for communicating that bot is ready
+	 */
 	public int worldChannel = 2;
 
 	/**
@@ -105,10 +115,13 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 		}
 	}
 
-
+	/**
+	 * Listener that broadcasts bot id to see if all players are ready
+	 * @param event
+	 */
 	@EventListener(eventClass = BotReady.class)
 	public void broadcastId(BotReady event) {
-		if(botsReady.size() + 1 != players) {
+		if(botsReady.size() + 1 != players) { // used + 1 with size because bot doesnt send the message to himself
 			if(!botsReady.contains(event.getId())){
 				botsReady.add(event.getId());
 			}
