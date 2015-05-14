@@ -7,18 +7,17 @@ import java.util.List;
 
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.BotReady;
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.DroppedEnemyFlag;
-import tecnico.ulisboa.pt.AASMA_DBI.Comunication.GotFlag;
+import tecnico.ulisboa.pt.AASMA_DBI.Comunication.SendLocation;
 import cz.cuni.amis.introspection.java.JProp;
 import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
 import cz.cuni.amis.pogamut.base.agent.module.comm.PogamutJVMComm;
 import cz.cuni.amis.pogamut.base.agent.navigation.IPathExecutorState;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
-import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.ObjectClassEventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
-import cz.cuni.amis.pogamut.base3d.worldview.object.event.WorldObjectAppearedEvent;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
+import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.Items;
 import cz.cuni.amis.pogamut.ut2004.agent.module.utils.TabooSet;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.UT2004PathAutoFixer;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
@@ -45,12 +44,13 @@ import cz.cuni.amis.utils.flag.FlagListener;
 
 @AgentScoped
 public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
+	
 
 	/**
 	 * Max number of players that need to enter the game so that bot's logic can
 	 * start working
 	 */
-	public int players = 4;
+	public int players = 6;
 	
 	/**
 	 * List that contains bots id's.
@@ -73,6 +73,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	/** how many times the bot died */
 	@JProp
 	public int deaths = 0;
+	
 
 
 	protected GameInfo gameInfo;
@@ -80,8 +81,6 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	@JProp
 	protected Location pathTarget;
 
-
-	protected UnrealId friendWithFlag = null;
 
 	/**
 	 * Returns parameters of the bot.
@@ -95,9 +94,6 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	public Location getPathTarget() {
 		return pathTarget;
 	}
-
-
-
 
 
 	/**
@@ -119,25 +115,24 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	 * Listener that broadcasts bot id to see if all players are ready
 	 * @param event
 	 */
-	@EventListener(eventClass = BotReady.class)
-	public void broadcastId(BotReady event) {
+	@EventListener(eventClass = SendLocation.class)
+	public void broadcastId(SendLocation event) {
 		if(botsReady.size() + 1 != players) { // used + 1 with size because bot doesnt send the message to himself
 			if(!botsReady.contains(event.getId())){
 				botsReady.add(event.getId());
+				if(event.getTeam() == info.getTeam())
+					bdiArchitecture.addLocation(event.getLocation(), event.getId());
 			}
-			PogamutJVMComm.getInstance().sendToOthers(new BotReady(info.getId()), worldChannel, bot);
+			PogamutJVMComm.getInstance().broadcastToOthers(new SendLocation(info.getLocation(),info.getId(),info.getTeam()), bot);
 		}
 	}
+	
+	
 
-	@EventListener(eventClass = GotFlag.class)
-	public void gotEnemyFlag(GotFlag event) {
-		this.friendWithFlag = event.getBotId();
-		log.info("My Friend " + this.getPlayers().getPlayer(friendWithFlag).getName() + " has the enemy flag");
-	}
 
 	@EventListener(eventClass = DroppedEnemyFlag.class)
 	public void DroppedEnemyFlag(DroppedEnemyFlag event) {
-		this.friendWithFlag = null;
+		
 	}
 
 
@@ -207,7 +202,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 		weaponPrefs.addGeneralPref(UT2004ItemType.FLAK_CANNON, true);
 		weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, true);
 
-		bdiArchitecture = new BDIArchitecture(bot,this);
+		bdiArchitecture = new BDIArchitecture(bot,this,players/2 - 1);
 
 		bdiArchitecture.addGoal(new GetEnemyFlag(this),"GET ENEMY FLAG");
 		bdiArchitecture.addGoal(new SupportTeamMateWithFlag(this),"SUPPORT TEAM MATE WITH FLAG");
@@ -241,8 +236,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	@Override
 	public void botFirstSpawn(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init, Self self) {
 		PogamutJVMComm.getInstance().registerAgent(bot, self.getTeam());
-		PogamutJVMComm.getInstance().registerAgent(bot, worldChannel);
-		PogamutJVMComm.getInstance().sendToOthers(new BotReady(info.getId()), worldChannel, bot);
+		PogamutJVMComm.getInstance().broadcastToOthers(new SendLocation(info.getLocation(),info.getId(),info.getTeam()), bot);
 	}
 
 	@Override
@@ -294,7 +288,6 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 		notMoving = 0;
 		enemy = null;
 		navigation.stopNavigation();
-		friendWithFlag = null;
 	}
 
 	/**
@@ -335,10 +328,11 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 		return enemy;
 	}
 
-	public UnrealId getFriendWithFlag() {
-		return this.friendWithFlag;
-	}
 
+	
+	public void sendLocation() {
+		PogamutJVMComm.getInstance().sendToOthers(new SendLocation(info.getLocation(),info.getId(),info.getTeam()), info.getTeam(), bot);
+	}
 
 
 	/**
@@ -352,10 +346,10 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	 */
 	@Override
 	public void logic() {
-
-		if(botsReady.size() + 1 == players)
+		
+		if(botsReady.size() + 1 == players){		
 			bdiArchitecture.BDIPlanner();	
-
+		}
 
 	}
 
@@ -364,10 +358,6 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	}
 
 
-	public void gotEnemyFlag() {
-		log.info("GOTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT THEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE FLAAAAAAAAAAAAG");
-		PogamutJVMComm.getInstance().sendToOthers(new GotFlag(info.getId()), bot.getSelf().getTeam(), bot);
-	}
 
 
 	// //////////
@@ -385,10 +375,6 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	}
 
 
-	public void teamScore(TeamScoreUpdate event) {
-		this.friendWithFlag = null;
-	}
-
 	// //////////////////////////////////////////
 	// //////////////////////////////////////////
 	// //////////////////////////////////////////
@@ -404,12 +390,12 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
 				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
-				/*,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
-				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 3"))
-				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
-				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 4"))
-				,new DBIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 5"))				
-				,new DBIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 5"))*/
+				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
+				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 3"))
+				/*,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
+				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 4"))
+				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 5"))				
+				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 5"))*/
 				);
 
 	}

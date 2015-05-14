@@ -1,25 +1,51 @@
 package tecnico.ulisboa.pt.AASMA_DBI;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import cz.cuni.amis.pogamut.base.utils.logging.LogCategory;
+import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType.Category;
 
 public class BDIArchitecture {
-	protected final HashMap<String,Goal> goals = new HashMap<String,Goal>();
+	protected final HashMap<String,Goal> goals;
 	protected Goal currentGoal = null;
 	protected UT2004Bot bot;
 	protected BDIBot bdiBot;
 	protected String flagInfoTeam;
 	protected String flagInfoEnemy;
-	protected boolean sawEnemy;
+	protected String roll;
+	protected Map<UnrealId,Location> teamMatesLocation;
+	protected int maxPlayersAtacking;
+	protected LogCategory log;
+	protected int numTeammates;
+	protected int maxPlayersDefending;
 
-	public BDIArchitecture(UT2004Bot bot, BDIBot bdiBot) {
+	public BDIArchitecture(UT2004Bot bot, BDIBot bdiBot,int numTeammates) {
 		this.bot = bot;
 		this.bdiBot = bdiBot;
 		this.flagInfoEnemy = "home";
 		this.flagInfoTeam = "home";
+		this.roll = "";
+		this.teamMatesLocation = new HashMap<UnrealId,Location>();
+		this.goals = new HashMap<String,Goal>();
+		if(numTeammates == 1){
+			this.maxPlayersDefending = 1;
+			this.maxPlayersAtacking = 1;
+		}
+		else{
+			this.maxPlayersAtacking = numTeammates/2 + 1; // always leave less players defending at the beginning
+			this.maxPlayersDefending = numTeammates/2;
+		}
+		this.log = bdiBot.getLog();
+		this.numTeammates = numTeammates;
+
 	}
 
 
@@ -29,6 +55,12 @@ public class BDIArchitecture {
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	public void addLocation(Location loc,UnrealId id){
+		if(!teamMatesLocation.containsKey(id)) {
+			teamMatesLocation.put(id,loc);
 		}
 	}
 
@@ -48,24 +80,24 @@ public class BDIArchitecture {
 			}
 			else
 			{
-				if (bdiBot.getInfo().getId().equals(holderId))
+				if (bdiBot.getInfo().getId().equals(holderId) && roll.equals("attack"))
 				{
 					result = "GO HOME";
 				}			
 				else
 				{
-					if(!bdiBot.getCTF().isOurFlagHome()){
+					if(!bdiBot.getCTF().isOurFlagHome() && roll.equals("defend")){
 						result = "GET OUR FLAG";				
 					}
 					else {
-						if(bdiBot.getCTF().isEnemyFlagHeld()) {
+						if(bdiBot.getCTF().isEnemyFlagHeld() && roll.equals("attack")) {
 							result = "SUPPORT TEAM MATE WITH FLAG";	
 						}
 						else {
 
 
 
-							if(bdiBot.getCTF().isEnemyFlagHome())
+							if(bdiBot.getCTF().isEnemyFlagHome() && roll.equals("attack"))
 							{
 								result = "GET ENEMY FLAG";
 							}
@@ -92,7 +124,7 @@ public class BDIArchitecture {
 			result = "GET ENEMY FLAG";
 		}
 
-		bdiBot.getLog().info(result);
+		log.info(result);
 
 		return result;
 	}
@@ -113,15 +145,21 @@ public class BDIArchitecture {
 
 
 	public void BDIPlanner() {
+
+		if(roll.equals("")) {
+			createRoll();
+			return;
+		}
+
 		if(currentGoal != null) {
 			if(currentGoal.hasFailed()) {
-				bdiBot.getLog().info("FAILEDDDDDDDDD");
+				log.info("FAILEDDDDDDDDD");
 				currentGoal.setFailed(false);
 				currentGoal = null;
 			}
 			else {
 				if(currentGoal.hasFinished()) {
-					bdiBot.getLog().info("FINISHEDDDDDD");
+					log.info("FINISHEDDDDDD");
 					currentGoal.setFinished(false);
 					currentGoal = null;
 				}
@@ -139,11 +177,12 @@ public class BDIArchitecture {
 			currentGoal.perform();
 		}
 
-		bdiBot.getLog().info(currentGoal.toString());
+		log.info(currentGoal.toString());
+		log.info(roll);
 
 		if(shouldReviewIntentions())
 		{
-			bdiBot.getLog().info("REVIEWING INTENTIONSS");
+			log.info("REVIEWING INTENTIONSS");
 			option = Options();
 			currentGoal = intention(option);
 		}
@@ -152,6 +191,11 @@ public class BDIArchitecture {
 
 	public Goal getCurrentGoal() {
 		return currentGoal;
+	}
+
+
+	public void resetRoll() {
+		this.roll ="";
 	}
 
 
@@ -180,6 +224,44 @@ public class BDIArchitecture {
 
 
 		return result;
+	}
+
+	public void createRoll() 
+	{
+		List<Double> distances;
+		Location myLocation = bdiBot.getInfo().getLocation();
+		Location flagBase = bdiBot.getEnemyFlagBase().getLocation();
+		//TODO
+		if(teamMatesLocation.size()  != numTeammates) {			
+			bdiBot.sendLocation();
+			log.info("Team Mates Locations = " + this.teamMatesLocation.size());
+			return;
+		}
+		distances = computeClosestBot(flagBase,myLocation);
+		double myDistance = flagBase.getDistance(myLocation);
+		for(int i=0; i < distances.size(); i++) {
+			if(Double.compare(distances.get(i),myDistance) == 0) {
+				if(i + 1 <= maxPlayersAtacking)
+					roll="attack";
+				else
+					roll="defend";
+			}
+		}
+		log.info("ROLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL");
+		log.info(roll);
+
+	}
+
+
+	public List<Double> computeClosestBot(Location flagBase, Location myLocation) {
+		List<Double> distances = new ArrayList<Double>();
+		distances.add(flagBase.getDistance(myLocation));
+		for(Location loc : teamMatesLocation.values()){
+			distances.add(flagBase.getDistance(loc));
+		}
+		Collections.sort(distances);
+
+		return distances;
 	}
 
 

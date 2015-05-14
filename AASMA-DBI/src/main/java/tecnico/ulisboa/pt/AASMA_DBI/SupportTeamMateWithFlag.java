@@ -14,8 +14,8 @@ public class SupportTeamMateWithFlag extends Goal {
 		
 		Player friend = null;
 	
-		if(bot.getFriendWithFlag() != null || bot.getCTF().isEnemyFlagHeld())
-			friend = bot.getPlayers().getPlayer(bot.getFriendWithFlag());
+		if(bot.getCTF().isEnemyFlagHeld())
+			friend = bot.getPlayers().getPlayer(bot.getEnemyFlag().getHolder());
 		else 
 		{
 			setFinished(true);

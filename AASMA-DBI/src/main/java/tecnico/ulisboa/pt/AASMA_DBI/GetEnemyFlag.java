@@ -30,7 +30,6 @@ public class GetEnemyFlag extends Goal {
 				bot.goTo(target);
 				if(bot.getInfo().getId().equals(bot.getEnemyFlag().getHolder())) {
 					setFinished(true);
-					bot.gotEnemyFlag();
 				}
 			}
 

@@ -39,7 +39,9 @@ public class GetOurFlag extends Goal {
 				if (enemy != null) {
 					bot.getLog().info("Getting Closer to Enemy carring my flag");
 					bot.goTo(enemy);
-
+					if(bot.getInfo().atLocation(enemy, 3.0)) 
+						setFinished(true);
+					
 				} 
 				else 
 				{
