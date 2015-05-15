@@ -36,6 +36,8 @@ public class GetOurFlag extends Goal {
 						String.format("FlagLocation: %s %s %.2f", flagLocation,
 								bot.getInfo().getLocation(),
 								bot.getInfo().getDistance(flagLocation)));
+				bot.getLog().info(String.format("My Location: %s",
+						bot.getInfo().getLocation()));
 				if (enemy != null) {
 					bot.getLog().info("Getting Closer to Enemy carring my flag");
 					bot.goTo(enemy);

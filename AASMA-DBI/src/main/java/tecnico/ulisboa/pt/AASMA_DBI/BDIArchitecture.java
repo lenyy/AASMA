@@ -94,28 +94,31 @@ public class BDIArchitecture {
 						result = "GET OUR FLAG";				
 					}
 					else {
-						if(bdiBot.getCTF().isEnemyFlagHeld() && roll.equals("attack")) {
-							result = "SUPPORT TEAM MATE WITH FLAG";	
+						if(roll.equals("defend")) {
+							result = "DEFEND";
 						}
-						else {
-
-
-
-							if(bdiBot.getCTF().isEnemyFlagHome() && roll.equals("attack"))
-							{
-								result = "GET ENEMY FLAG";
+						else
+						{
+							if(bdiBot.getCTF().isEnemyFlagHeld() && roll.equals("attack")) {
+								result = "SUPPORT TEAM MATE WITH FLAG";	
 							}
-							else
-							{
-								if(bdiBot.getInfo().getHealth() < 20 && bdiBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+							else {
+								if(bdiBot.getCTF().isEnemyFlagHome() && roll.equals("attack"))
 								{
-									result = "GET HEALTH";
-
+									result = "GET ENEMY FLAG";
 								}
 								else
 								{
-									result = "GET ITEMS";
+									if(bdiBot.getInfo().getHealth() < 20 && bdiBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+									{
+										result = "GET HEALTH";
 
+									}
+									else
+									{
+										result = "GET ITEMS";
+
+									}
 								}
 							}
 						}
@@ -180,7 +183,7 @@ public class BDIArchitecture {
 
 			currentGoal.perform();
 		}
-		
+
 		if(newRoll) {
 			createRoll();
 			log.info("ROLLLLLLLLLLLLLLLLLLLLLLL CHANGINGGGGGGGG");
@@ -283,7 +286,7 @@ public class BDIArchitecture {
 
 		return distances;
 	}
-	
+
 	public int getNumberTeamMates() {
 		return this.numTeammates;
 	}

@@ -1,7 +1,6 @@
 package tecnico.ulisboa.pt.AASMA_Hibrido;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -10,13 +9,11 @@ import java.util.Map;
 import cz.cuni.amis.pogamut.base.utils.logging.LogCategory;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType.Category;
 
 public class BDIArchitecture {
 	protected final HashMap<String,Goal> goals;
 	protected Goal currentGoal = null;
-	protected UT2004Bot bot;
 	protected HibridBot hBot;
 	protected String flagInfoTeam;
 	protected String flagInfoEnemy;
@@ -29,8 +26,7 @@ public class BDIArchitecture {
 	protected boolean newRoll;
 	protected boolean rollChanged;
 
-	public BDIArchitecture(UT2004Bot bot, HibridBot hBot,int numTeammates) {
-		this.bot = bot;
+	public BDIArchitecture(HibridBot hBot,int numTeammates) {
 		this.hBot = hBot;
 		this.flagInfoEnemy = "home";
 		this.flagInfoTeam = "home";
@@ -86,32 +82,36 @@ public class BDIArchitecture {
 					result = "GET OUR FLAG";				
 				}
 				else {
-					if(hBot.getCTF().isEnemyFlagHeld() && roll.equals("attack")) {
-						result = "SUPPORT TEAM MATE WITH FLAG";	
+					if(roll.equals("defend")) {
+						result = "DEFEND";
 					}
-					else {
-
-
-
-						if(hBot.getCTF().isEnemyFlagHome() && roll.equals("attack"))
-						{
-							result = "GET ENEMY FLAG";
+					else
+					{
+						if(hBot.getCTF().isEnemyFlagHeld() && roll.equals("attack")) {
+							result = "SUPPORT TEAM MATE WITH FLAG";	
 						}
-						else
+						else 
 						{
-							if(hBot.getInfo().getHealth() < 20 && hBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+							if(hBot.getCTF().isEnemyFlagHome() && roll.equals("attack"))
 							{
-								result = "GET HEALTH";
-
+								result = "GET ENEMY FLAG";
 							}
 							else
 							{
-								result = "GET ITEMS";
+								if(hBot.getInfo().getHealth() < 20 && hBot.getItems().getAllItems(Category.HEALTH).size() > 0 ) 
+								{
+									result = "GET HEALTH";
 
+								}
+								else
+								{
+									result = "GET ITEMS";
+
+								}
 							}
 						}
-					}
 
+					}
 				}
 			}
 		}
