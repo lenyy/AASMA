@@ -5,9 +5,9 @@ package tecnico.ulisboa.pt.AASMA_DBI;
 import java.util.ArrayList;
 import java.util.List;
 
-import tecnico.ulisboa.pt.AASMA_DBI.Comunication.BotReady;
+import tecnico.ulisboa.pt.AASMA_DBI.Comunication.BotLocation;
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.DroppedEnemyFlag;
-import tecnico.ulisboa.pt.AASMA_DBI.Comunication.SendLocation;
+import tecnico.ulisboa.pt.AASMA_DBI.Comunication.FirstSpawn;
 import cz.cuni.amis.introspection.java.JProp;
 import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
 import cz.cuni.amis.pogamut.base.agent.module.comm.PogamutJVMComm;
@@ -50,7 +50,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	 * Max number of players that need to enter the game so that bot's logic can
 	 * start working
 	 */
-	public int players = 6;
+	public int players = 4;
 	
 	/**
 	 * List that contains bots id's.
@@ -115,15 +115,15 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	 * Listener that broadcasts bot id to see if all players are ready
 	 * @param event
 	 */
-	@EventListener(eventClass = SendLocation.class)
-	public void broadcastId(SendLocation event) {
+	@EventListener(eventClass = FirstSpawn.class)
+	public void broadcastId(FirstSpawn event) {
 		if(botsReady.size() + 1 != players) { // used + 1 with size because bot doesnt send the message to himself
 			if(!botsReady.contains(event.getId())){
 				botsReady.add(event.getId());
 				if(event.getTeam() == info.getTeam())
 					bdiArchitecture.addLocation(event.getLocation(), event.getId());
 			}
-			PogamutJVMComm.getInstance().broadcastToOthers(new SendLocation(info.getLocation(),info.getId(),info.getTeam()), bot);
+			PogamutJVMComm.getInstance().broadcastToOthers(new FirstSpawn(info.getLocation(),info.getId(),info.getTeam()), bot);
 		}
 	}
 	
@@ -236,7 +236,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	@Override
 	public void botFirstSpawn(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init, Self self) {
 		PogamutJVMComm.getInstance().registerAgent(bot, self.getTeam());
-		PogamutJVMComm.getInstance().broadcastToOthers(new SendLocation(info.getLocation(),info.getId(),info.getTeam()), bot);
+		PogamutJVMComm.getInstance().broadcastToOthers(new FirstSpawn(info.getLocation(),info.getId(),info.getTeam()), bot);
 	}
 
 	@Override
@@ -331,7 +331,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 
 	
 	public void sendLocation() {
-		PogamutJVMComm.getInstance().sendToOthers(new SendLocation(info.getLocation(),info.getId(),info.getTeam()), info.getTeam(), bot);
+		PogamutJVMComm.getInstance().sendToOthers(new FirstSpawn(info.getLocation(),info.getId(),info.getTeam()), info.getTeam(), bot);
 	}
 
 
@@ -390,9 +390,9 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
 				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
-				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
+				/*,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 3"))
-				/*,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
+				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 4"))
 				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 5"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 5"))*/
