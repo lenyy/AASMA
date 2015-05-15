@@ -38,7 +38,7 @@ public class ReactiveArchitecture {
 				if(items.getNearestVisibleItem(ItemType.Category.HEALTH).isVisible() 
 						&& info.getHealth() < 190)
 				{
-					hBot.goTo(items.getNearestItem(ItemType.Category.HEALTH).getLocation());
+					hBot.goTo(items.getNearestVisibleItem(ItemType.Category.HEALTH).getLocation());
 					log.info("REACTIVEEEEEEEEEEEEEEEEEEEEEEE");
 					log.info("GOING TO HEALT");
 
@@ -46,23 +46,34 @@ public class ReactiveArchitecture {
 			}
 			else
 			{
-				if(items.getNearestVisibleItem(ItemType.Category.WEAPON) != null) {
-					if(items.getNearestVisibleItem(ItemType.Category.WEAPON).isVisible() 
-							&& !weapons.hasWeapon(items.getNearestVisibleItem(ItemType.Category.WEAPON).getType()))
-					{
-						hBot.goTo(items.getNearestItem(ItemType.Category.WEAPON).getLocation());
+				if(items.getNearestVisibleItem(ItemType.Category.ARMOR) != null) {
+					if(items.getNearestVisibleItem(ItemType.Category.ARMOR).isVisible() 
+							&& info.getArmor() < 150) {
+						hBot.goTo(items.getNearestVisibleItem(ItemType.Category.ARMOR).getLocation());
 						log.info("REACTIVEEEEEEEEEEEEEEEEEEEEEEE");
-						log.info("GOING TO WEAPON");
+						log.info("GOING TO ARMOR");
 					}
 				}
 				else
 				{
-					if(items.getNearestVisibleItem(ItemType.Category.AMMO) != null) {
-						if(items.getNearestVisibleItem(ItemType.Category.AMMO).isVisible() 
-								&& !weapons.hasAmmo(items.getNearestVisibleItem(ItemType.Category.AMMO).getType())) {
-							hBot.goTo(items.getNearestItem(ItemType.Category.AMMO).getLocation());
+					if(items.getNearestVisibleItem(ItemType.Category.WEAPON) != null) {
+						if(items.getNearestVisibleItem(ItemType.Category.WEAPON).isVisible() 
+								&& !weapons.hasWeapon(items.getNearestVisibleItem(ItemType.Category.WEAPON).getType()))
+						{
+							hBot.goTo(items.getNearestVisibleItem(ItemType.Category.WEAPON).getLocation());
 							log.info("REACTIVEEEEEEEEEEEEEEEEEEEEEEE");
-							log.info("GOING TO AMMO");
+							log.info("GOING TO WEAPON");
+						}
+					}
+					else
+					{
+						if(items.getNearestVisibleItem(ItemType.Category.AMMO) != null) {
+							if(items.getNearestVisibleItem(ItemType.Category.AMMO).isVisible() 
+									&& !weapons.hasAmmo(items.getNearestVisibleItem(ItemType.Category.AMMO).getType())) {
+								hBot.goTo(items.getNearestVisibleItem(ItemType.Category.AMMO).getLocation());
+								log.info("REACTIVEEEEEEEEEEEEEEEEEEEEEEE");
+								log.info("GOING TO AMMO");
+							}
 						}
 					}
 				}
