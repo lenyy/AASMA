@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.BotLocation;
-import tecnico.ulisboa.pt.AASMA_DBI.Comunication.DroppedEnemyFlag;
 import tecnico.ulisboa.pt.AASMA_DBI.Comunication.FirstSpawn;
 import cz.cuni.amis.introspection.java.JProp;
 import cz.cuni.amis.pogamut.base.agent.impl.AgentId;
@@ -17,7 +16,6 @@ import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
-import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.Items;
 import cz.cuni.amis.pogamut.ut2004.agent.module.utils.TabooSet;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.UT2004PathAutoFixer;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
@@ -35,7 +33,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoin
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerKilled;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Self;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.TeamScore.TeamScoreUpdate;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.TeamScore;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.Heatup;
 import cz.cuni.amis.utils.exception.PogamutException;
@@ -128,13 +126,12 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	}
 	
 	
-
-
-	@EventListener(eventClass = DroppedEnemyFlag.class)
-	public void DroppedEnemyFlag(DroppedEnemyFlag event) {
-		
+	@EventListener(eventClass = BotLocation.class)
+	public void botLocation(BotLocation event) {
+		bdiArchitecture.addLocation(event.getLocation(), event.getId());
 	}
-
+	
+	
 
 	/**
 	 * Used internally to maintain the information about the bot we're currently
@@ -331,7 +328,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 
 	
 	public void sendLocation() {
-		PogamutJVMComm.getInstance().sendToOthers(new FirstSpawn(info.getLocation(),info.getId(),info.getTeam()), info.getTeam(), bot);
+		PogamutJVMComm.getInstance().sendToOthers(new BotLocation(info.getLocation(),info.getId()), info.getTeam(), bot);
 	}
 
 
@@ -368,11 +365,11 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 
 	@Override
 	public void botKilled(BotKilled event) {
-		if(bot.getSelf().getId().equals(getEnemyFlag().getHolder())) {			
-			PogamutJVMComm.getInstance().sendToOthers(new DroppedEnemyFlag(), bot.getSelf().getTeam(), bot);
-		}
+		bdiArchitecture.resetRoll();
 		reset();		
 	}
+	
+	
 
 
 	// //////////////////////////////////////////
@@ -380,9 +377,6 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 	// //////////////////////////////////////////
 
 	public static void main(String args[]) throws PogamutException {
-
-		// starts 2 or 4 CTFBots at once
-		// note that this is the most easy way to get a bunch of bots running at the same time
 
 		new UT2004BotRunner<UT2004Bot, UT2004BotParameters>(BDIBot.class, "DBIBot").setMain(true)
 		.startAgents(

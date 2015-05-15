@@ -26,6 +26,8 @@ public class BDIArchitecture {
 	protected LogCategory log;
 	protected int numTeammates;
 	protected int maxPlayersDefending;
+	protected boolean newRoll;
+	protected boolean rollChanged;
 
 	public BDIArchitecture(UT2004Bot bot, BDIBot bdiBot,int numTeammates) {
 		this.bot = bot;
@@ -45,6 +47,8 @@ public class BDIArchitecture {
 		}
 		this.log = bdiBot.getLog();
 		this.numTeammates = numTeammates;
+		this.newRoll = false;
+		this.rollChanged = false;
 
 	}
 
@@ -176,6 +180,11 @@ public class BDIArchitecture {
 
 			currentGoal.perform();
 		}
+		
+		if(newRoll) {
+			createRoll();
+			log.info("ROLLLLLLLLLLLLLLLLLLLLLLL CHANGINGGGGGGGG");
+		}
 
 		log.info(currentGoal.toString());
 		log.info(roll);
@@ -195,7 +204,8 @@ public class BDIArchitecture {
 
 
 	public void resetRoll() {
-		this.roll ="";
+		this.teamMatesLocation.clear();
+		this.newRoll = true;
 	}
 
 
@@ -212,12 +222,20 @@ public class BDIArchitecture {
 			{
 				result = true;
 				this.flagInfoTeam = bdiBot.getOurFlag().getState();
+				resetRoll();
 			}
 			else
 			{
 				if(!this.flagInfoEnemy.equalsIgnoreCase(bdiBot.getEnemyFlag().getState())) {
 					result = true;
 					this.flagInfoEnemy = bdiBot.getEnemyFlag().getState();
+				}
+				else
+				{
+					if(rollChanged) {
+						this.rollChanged=false;
+						result = true;
+					}
 				}
 			}
 		}
@@ -247,6 +265,8 @@ public class BDIArchitecture {
 					roll="defend";
 			}
 		}
+		this.newRoll = false;
+		this.rollChanged = true;
 		log.info("ROLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL");
 		log.info(roll);
 
@@ -262,6 +282,10 @@ public class BDIArchitecture {
 		Collections.sort(distances);
 
 		return distances;
+	}
+	
+	public int getNumberTeamMates() {
+		return this.numTeammates;
 	}
 
 
