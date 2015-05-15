@@ -435,6 +435,14 @@ public class HibridBot extends UT2004BotModuleController<UT2004Bot> {
 							result = true;
 						}
 					}
+					else
+					{
+						if(items.getNearestVisibleItem(ItemType.Category.ARMOR) != null){
+							if(items.getNearestVisibleItem(ItemType.Category.ARMOR).isVisible()) {
+								result = true;
+							}
+						}
+					}
 				}
 			}
 			shoot.stopShooting();
