@@ -208,6 +208,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 		bdiArchitecture.addGoal(getItemsGoal = new GetItems(this),"GET ITEMS");
 		bdiArchitecture.addGoal(new GoToOurBase(this), "GO HOME");
 		bdiArchitecture.addGoal(new Shoot(this,weaponPrefs,shoot), "SHOOT");
+		bdiArchitecture.addGoal(new Defend(this), "DEFEND");
 
 
 	}
@@ -384,7 +385,7 @@ public class BDIBot extends UT2004BotModuleController<UT2004Bot> {
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleA").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 1"))
 				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 2"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 2"))
-				/*,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 3"))				
+				/*,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 5"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 3"))
 				,new BDIBotParams().setBotSkin("HumanMaleA.MercMaleA")    .setSkillLevel(5).setTeam(0).setAgentId(new AgentId("Team RED - Bot 4"))				
 				,new BDIBotParams().setBotSkin("HumanFemaleA.MercFemaleB").setSkillLevel(5).setTeam(1).setAgentId(new AgentId("Team BLUE - Bot 4"))
